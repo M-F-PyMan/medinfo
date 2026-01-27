@@ -1,0 +1,332 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Local Font Declarations */
+
+/* Iran Yekan Font Family */
+@font-face {
+  font-family: 'Iran Yekan';
+  src: url('/fonts/iranyekanwebthin/iranyekanwebthin.woff') format('woff'),
+       url('/fonts/iranyekanwebthin/iranyekanwebthin.ttf') format('truetype'),
+       url('/fonts/iranyekanwebthin/iranyekanwebthin.eot') format('embedded-opentype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Iran Yekan';
+  src: url('/fonts/iranyekanweblight/iranyekanweblight.woff') format('woff'),
+       url('/fonts/iranyekanweblight/iranyekanweblight.ttf') format('truetype'),
+       url('/fonts/iranyekanweblight/iranyekanweblight.eot') format('embedded-opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Iran Yekan';
+  src: url('/fonts/iranyekanwebregular/iranyekanwebregular.woff') format('woff'),
+       url('/fonts/iranyekanwebregular/iranyekanwebregular.ttf') format('truetype'),
+       url('/fonts/iranyekanwebregular/iranyekanwebregular.eot') format('embedded-opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Iran Yekan';
+  src: url('/fonts/iranyekanwebmedium/iranyekanwebmedium.woff') format('woff'),
+       url('/fonts/iranyekanwebmedium/iranyekanwebmedium.ttf') format('truetype'),
+       url('/fonts/iranyekanwebmedium/iranyekanwebmedium.eot') format('embedded-opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Iran Yekan';
+  src: url('/fonts/iranyekanwebbold/iranyekanwebbold.woff') format('woff'),
+       url('/fonts/iranyekanwebbold/iranyekanwebbold.ttf') format('truetype'),
+       url('/fonts/iranyekanwebbold/iranyekanwebbold.eot') format('embedded-opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Iran Yekan';
+  src: url('/fonts/iranyekanwebextrabold/iranyekanwebextrabold.woff') format('woff'),
+       url('/fonts/iranyekanwebextrabold/iranyekanwebextrabold.ttf') format('truetype'),
+       url('/fonts/iranyekanwebextrabold/iranyekanwebextrabold.eot') format('embedded-opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Iran Yekan';
+  src: url('/fonts/iranyekanwebblack/iranyekanwebblack.woff') format('woff'),
+       url('/fonts/iranyekanwebblack/iranyekanwebblack.ttf') format('truetype'),
+       url('/fonts/iranyekanwebblack/iranyekanwebblack.eot') format('embedded-opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Vazir Font Family */
+@font-face {
+  font-family: 'Vazir';
+  src: url('/fonts/Vazir-Light.woff2') format('woff2'),
+       url('/fonts/Vazir-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazir';
+  src: url('/fonts/Vazir-Regular.woff2') format('woff2'),
+       url('/fonts/Vazir-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vazir';
+  src: url('/fonts/Vazir-Medium.woff2') format('woff2'),
+       url('/fonts/Vazir-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* SemiBold weight not available in current version */
+
+@font-face {
+  font-family: 'Vazir';
+  src: url('/fonts/Vazir-Bold.woff2') format('woff2'),
+       url('/fonts/Vazir-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+* {
+  font-family: 'Vazir', 'IRANYekan';
+}
+
+html {
+  direction: rtl;
+}
+
+body {
+  background: #0F172A;
+  background-image: 
+    radial-gradient(at 40% 20%, #1E293B 0px, transparent 50%),
+    radial-gradient(at 80% 0%, #312E81 0px, transparent 50%),
+    radial-gradient(at 0% 50%, #1E40AF 0px, transparent 50%);
+}
+
+.glass {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-light {
+  background: rgba(51, 65, 85, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.glow-button {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #8B5CF6, #A855F7);
+  transition: all 0.3s ease;
+}
+
+.glow-button::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, #8B5CF6, #A855F7, #EC4899);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.glow-button:hover::before {
+  opacity: 1;
+}
+
+.glow-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4);
+}
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #8B5CF6, #EC4899, #F59E0B);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-transition {
+  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.slide-enter-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.slide-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.slide-exit-active {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+@keyframes progress {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.6);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.8);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Glassmorphism styles for admin panel */
+
+/* Marquee animation */
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  animation: marquee 15s linear infinite;
+}
+
+/* Code verification input styles */
+.verify-code-input {
+  direction: ltr !important;
+  text-align: center !important;
+  unicode-bidi: plaintext !important;
+  font-family: 'Vazir', sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  letter-spacing: 2px !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  color: white !important;
+  font-style: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  line-height: 1 !important;
+}
+
+/* Force font override for all input elements */
+input[type="text"].verify-code-input {
+  font-family: 'Vazir', sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  letter-spacing: 2px !important;
+}
+
+/* Additional courier font class */
+.courier-font {
+  font-family: 'Vazir', sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  letter-spacing: 2px !important;
+  font-style: normal !important;
+  font-variant: normal !important;
+  text-transform: none !important;
+  line-height: 1 !important;
+}
+
+/* Phone number input padding */
+.phone-input {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  text-align: left !important;
+  direction: ltr !important;
+}
