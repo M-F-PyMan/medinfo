@@ -35,6 +35,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # فیلدهای ضروری برای authentication system
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    is_teacher = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
 
     objects = UserManager()
@@ -52,3 +53,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         return self.username
 
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    image = models.ImageField(default='default.jpg', upload_to='profile_pics')
+    courses=
