@@ -3,10 +3,12 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils import timezone
 from courses.models import Courses
 
+
+
 class UserManager(BaseUserManager):
     def create_user(self, username, email=None, password=None, **extra_fields):
         if not username:
-            raise ValueError('The Username field must be set')
+            raise ValueError("Username is required")
 
         email = self.normalize_email(email) if email else None
         user = self.model(username=username, email=email, **extra_fields)
@@ -15,46 +17,65 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, username, email=None, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_active', True)
-
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
 
         return self.create_user(username, email, password, **extra_fields)
 
-class User(AbstractBaseUser, PermissionsMixin):
-    name = models.CharField(max_length=100, blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
-    username = models.CharField(max_length=100, unique=True,null=True,blank=True)
-    is_staff = models.BooleanField(default=False)
 
-    # فیلدهای ضروری برای authentication system
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    is_teacher = models.BooleanField(default=False)
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    username    = models.CharField(max_length=100, unique=True)
+    email       = models.EmailField(unique=True, null=True, blank=True)
+    name        = models.CharField(max_length=100, null=True, blank=True)
+
+    is_active   = models.BooleanField(default=True)
+    is_staff    = models.BooleanField(default=False)
+    is_teacher  = models.BooleanField(default=False)  # مدرس یا نه
     date_joined = models.DateTimeField(default=timezone.now)
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'username'
-    EMAIL_FIELD = 'email'
-    REQUIRED_FIELDS = []  # فیلدهای مورد نیاز برای createsuperuser
+    USERNAME_FIELD = "username"
+    REQUIRED_FIELDS = ["email"]
 
     def __str__(self):
-        return self.name or self.username
-
-    def get_full_name(self):
-        return self.name or self.username
-
-    def get_short_name(self):
         return self.username
 
 
+
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.ImageField(default='default.jpg', upload_to='profile_pics')
-    courses=models.ManyToManyField('Courses', related_name='courses')
+    user        = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    image       = models.ImageField(upload_to="profile_pics/", default="default.jpg")
+    bio         = models.TextField(blank=True, null=True)
+    specialty   = models.CharField(max_length=150, blank=True, null=True)  # روان‌شناس، پرستار، پزشک عمومی...
+    field       = models.CharField(max_length=150, blank=True, null=True)  # حوزه فعالیت: پزشکی، روان‌شناسی، پیراپزشکی
+    phone       = models.CharField(max_length=20, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} Profile"
+
+
+class InstructorProfile(models.Model):
+    user        = models.OneToOneField(User, on_delete=models.CASCADE, related_name="instructor_profile")
+    degree      = models.CharField(max_length=200, blank=True, null=True)
+    experience  = models.PositiveIntegerField(default=0)  # سال سابقه
+    linkedin    = models.URLField(blank=True, null=True)
+    website     = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Instructor: {self.user.username}"
+
+class Enrollment(models.Model):
+    user      = models.ForeignKey(User, on_delete=models.CASCADE, related_name="enrollments")
+    course = models.ForeignKey("courses.Courses", on_delete=models.CASCADE, related_name="enrollments")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "course")
+
+    def __str__(self):
+        return f"{self.user.username} enrolled in {self.course.course_name}"
+
