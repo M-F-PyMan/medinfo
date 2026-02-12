@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
-from courses.models import Courses
-
 
 
 class UserManager(BaseUserManager):
@@ -20,10 +18,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
-
         return self.create_user(username, email, password, **extra_fields)
-
-
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -33,7 +28,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     is_active   = models.BooleanField(default=True)
     is_staff    = models.BooleanField(default=False)
-    is_teacher  = models.BooleanField(default=False)  # مدرس یا نه
+    is_teacher  = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
 
     objects = UserManager()
@@ -45,13 +40,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.username
 
 
-
 class Profile(models.Model):
     user        = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     image       = models.ImageField(upload_to="profile_pics/", default="default.jpg")
     bio         = models.TextField(blank=True, null=True)
-    specialty   = models.CharField(max_length=150, blank=True, null=True)  # روان‌شناس، پرستار، پزشک عمومی...
-    field       = models.CharField(max_length=150, blank=True, null=True)  # حوزه فعالیت: پزشکی، روان‌شناسی، پیراپزشکی
+    specialty   = models.CharField(max_length=150, blank=True, null=True)
+    field       = models.CharField(max_length=150, blank=True, null=True)
     phone       = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
@@ -61,21 +55,18 @@ class Profile(models.Model):
 class InstructorProfile(models.Model):
     user        = models.OneToOneField(User, on_delete=models.CASCADE, related_name="instructor_profile")
     degree      = models.CharField(max_length=200, blank=True, null=True)
-    experience  = models.PositiveIntegerField(default=0)  # سال سابقه
+    experience  = models.PositiveIntegerField(default=0)
     linkedin    = models.URLField(blank=True, null=True)
     website     = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return f"Instructor: {self.user.username}"
 
+
 class Enrollment(models.Model):
-    user      = models.ForeignKey(User, on_delete=models.CASCADE, related_name="enrollments")
-    course = models.ForeignKey("courses.Courses", on_delete=models.CASCADE, related_name="enrollments")
+    user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="enrollments")
+    course = models.ForeignKey("courses.Course", on_delete=models.CASCADE, related_name="enrollments")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ("user", "course")
-
-    def __str__(self):
-        return f"{self.user.username} enrolled in {self.course.course_name}"
-
