@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-ucdceisg1xpm*t$zok)*xhyv0__$3v!e6@=l@(y3i6*(v-1h!l'
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]   # در توسعه آزاد، در پروداکشن محدود کن
+ALLOWED_HOSTS = ["*"]
 
 AUTH_USER_MODEL = 'accounts.User'
 
@@ -29,10 +29,10 @@ INSTALLED_APPS = [
 
     # Third-party
     'rest_framework',
-    'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    'azbankgateways',
 
     # Our apps
     'accounts.apps.AccountsConfig',
@@ -60,7 +60,7 @@ MIDDLEWARE = [
 
 
 # -------------------------
-#  CORS (برای اتصال فرانت React)
+#  CORS
 # -------------------------
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
@@ -73,8 +73,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    # امنیت بهتر
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     )
 }
 
@@ -99,7 +100,7 @@ WSGI_APPLICATION = 'Medinfo.wsgi.application'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # اگر قالب داشتی
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -117,7 +118,7 @@ TEMPLATES = [
 # -------------------------
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',   # بعداً می‌تونی PostgreSQL بذاری
+        'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
@@ -160,3 +161,22 @@ MEDIA_ROOT = BASE_DIR / 'media'
 #  DEFAULT PRIMARY KEY
 # -------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# -------------------------
+#  PAYMENT GATEWAY SETTINGS
+# -------------------------
+AZ_IRANIAN_BANK_GATEWAYS = {
+    "GATEWAYS": {
+        "ZARINPAL": {
+            "MERCHANT_CODE": "<YOUR MERCHANT CODE>",
+            "SANDBOX": 1,  # فعال برای تست
+        },
+    },
+    "DEFAULT": "ZARINPAL",
+    "CURRENCY": "IRR",
+    "BANK_TIMEOUT": 5,
+    "TRACKING_CODE_QUERY_PARAM": "tc",
+    "TRACKING_CODE_LENGTH": 16,
+    "IS_SAFE_GET_GATEWAY_PAYMENT": True,
+}
