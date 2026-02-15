@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'payments.apps.PaymentsConfig',
     'courses.apps.CoursesConfig',
+    'reviews.apps.ReviewsConfig',
 ]
 
 

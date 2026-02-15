@@ -1,25 +1,23 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.forms import ModelForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import User, Profile, InstructorProfile, Enrollment
 
 
 # ---------------------------
-#  UserAdmin Forms
+#  Inline Profiles
 # ---------------------------
 
-class UserCreationForm(ModelForm):
-    """فرم ساخت کاربر جدید در پنل ادمین"""
-    class Meta:
-        model = User
-        fields = ("username", "email", "password")
+class ProfileInline(admin.StackedInline):
+    model = Profile
+    can_delete = False
+    verbose_name_plural = "پروفایل کاربر"
 
 
-class UserChangeForm(ModelForm):
-    """فرم ویرایش کاربر"""
-    class Meta:
-        model = User
-        fields = "__all__"
+class InstructorProfileInline(admin.StackedInline):
+    model = InstructorProfile
+    can_delete = False
+    verbose_name_plural = "پروفایل مدرس"
 
 
 # ---------------------------
@@ -60,19 +58,30 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             "classes": ("wide",),
-            "fields": ("username", "email", "password", "is_teacher", "is_staff", "is_active"),
+            "fields": ("username", "email", "password1", "password2", "is_teacher", "is_staff", "is_active"),
         }),
     )
 
     search_fields = ("username", "email", "name")
     ordering = ("id",)
 
+    inlines = [ProfileInline, InstructorProfileInline]
+
 
 # ---------------------------
-#  ثبت مدل‌ها در ادمین
+#  Enrollment Admin
+# ---------------------------
+
+@admin.register(Enrollment)
+class EnrollmentAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "course", "created_at")
+    list_filter = ("created_at", "course")
+    search_fields = ("user__username", "course__title")
+    readonly_fields = ("created_at",)
+
+
+# ---------------------------
+#  ثبت مدل‌ها
 # ---------------------------
 
 admin.site.register(User, UserAdmin)
-admin.site.register(Profile)
-admin.site.register(InstructorProfile)
-admin.site.register(Enrollment)

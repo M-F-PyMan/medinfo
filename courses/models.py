@@ -49,3 +49,18 @@ class Lesson(models.Model):
 
     def __str__(self):
         return f"{self.course.title} - {self.title}"
+
+
+class LessonProgress(models.Model):
+    user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="lesson_progress")
+    lesson = models.ForeignKey("courses.Lesson", on_delete=models.CASCADE, related_name="progress")
+
+    watched_seconds = models.PositiveIntegerField(default=0)
+    completed = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("user", "lesson")
+
+    def __str__(self):
+        return f"{self.user.username} - {self.lesson.title} ({self.watched_seconds}s)"

@@ -1,0 +1,79 @@
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+from accounts.models import Enrollment
+from .models import Rating, Comment
+from .serializers import RatingSerializer, CommentSerializer
+from courses.models import Course
+
+
+class ReviewViewSet(viewsets.ViewSet):
+
+    # -------------------------
+    #  لیست نظرات یک دوره
+    # -------------------------
+    @action(detail=True, methods=["get"], permission_classes=[AllowAny])
+    def comments(self, request, pk=None):
+        course = Course.objects.get(id=pk)
+        comments = course.comments.all().order_by("-created_at")
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
+    # -------------------------
+    #  ارسال نظر
+    # -------------------------
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def add_comment(self, request, pk=None):
+        course = Course.objects.get(id=pk)
+
+        # فقط خریداران دوره
+        if not Enrollment.objects.filter(user=request.user, course=course).exists():
+            return Response({"error": "برای ثبت نظر باید دوره را خریداری کرده باشید"}, status=403)
+
+        comment = Comment.objects.create(
+            user=request.user,
+            course=course,
+            text=request.data.get("text")
+        )
+
+        return Response(CommentSerializer(comment).data)
+
+    # -------------------------
+    #  ثبت یا ویرایش امتیاز
+    # -------------------------
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def rate(self, request, pk=None):
+        course = Course.objects.get(id=pk)
+        value = int(request.data.get("value", 0))
+
+        if value < 1 or value > 5:
+            return Response({"error": "امتیاز باید بین 1 تا 5 باشد"}, status=400)
+
+        # فقط خریداران دوره
+        if not Enrollment.objects.filter(user=request.user, course=course).exists():
+            return Response({"error": "برای امتیازدهی باید دوره را خریداری کرده باشید"}, status=403)
+
+        rating, created = Rating.objects.update_or_create(
+            user=request.user,
+            course=course,
+            defaults={"value": value}
+        )
+
+        return Response(RatingSerializer(rating).data)
+
+    # -------------------------
+    #  میانگین امتیاز دوره
+    # -------------------------
+    @action(detail=True, methods=["get"], permission_classes=[AllowAny])
+    def average(self, request, pk=None):
+        course = Course.objects.get(id=pk)
+        ratings = course.ratings.all()
+
+        if ratings.count() == 0:
+            return Response({"average": 0})
+
+        avg = round(sum(r.value for r in ratings) / ratings.count(), 1)
+
+        return Response({"average": avg})

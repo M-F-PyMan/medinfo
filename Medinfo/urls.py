@@ -10,6 +10,7 @@ urlpatterns = [
     path('api/accounts/', include('accounts.urls')),
     path('api/courses/', include('courses.urls')),
     path('api/payments/', include('payments.urls')),
+    path('api/reviews/', include('reviews.urls')),
 ]
 
 # Media & Static (development only)
