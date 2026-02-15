@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'payout.apps.PayoutConfig',
     'instructor.apps.InstructorConfig',
     'messaging.apps.MessagingConfig',
+    'wishlist.apps.WishlistConfig',
 ]
 
 
