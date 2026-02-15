@@ -41,6 +41,9 @@ INSTALLED_APPS = [
     'reviews.apps.ReviewsConfig',
     'coupons.apps.CouponsConfig',
     'notifications.apps.NotificationsConfig',
+    'payout.apps.PayoutConfig',
+    'instructor.apps.InstructorConfig',
+    'messaging.apps.MessagingConfig',
 ]
 
 

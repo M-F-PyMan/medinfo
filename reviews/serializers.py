@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Rating, Comment,CommentReport
+from .models import Rating, Comment
 
 
 class RatingSerializer(serializers.ModelSerializer):
@@ -14,6 +14,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ["id", "user_name", "text", "created_at"]
+
 
 class CommentReportSerializer(serializers.Serializer):
     reason = serializers.CharField()

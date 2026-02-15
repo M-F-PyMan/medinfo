@@ -6,7 +6,7 @@ from courses.models import Course
 class Rating(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="ratings")
-    value = models.PositiveSmallIntegerField()  # 1 تا 5
+    value = models.PositiveSmallIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -25,16 +25,17 @@ class Comment(models.Model):
     def __str__(self):
         return f"Comment by {self.user} on {self.course}"
 
+
 class CommentReport(models.Model):
     reporter = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="reports_made"
+        related_name="reports_made",
     )
     comment = models.ForeignKey(
         Comment,
         on_delete=models.CASCADE,
-        related_name="reports"
+        related_name="reports",
     )
     reason = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

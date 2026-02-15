@@ -5,15 +5,12 @@ from rest_framework.response import Response
 
 from accounts.models import Enrollment
 from courses.models import Course
-from .models import Comment, Rating
-from .serializers import CommentSerializer, RatingSerializer
+from .models import Comment, Rating, CommentReport
+from .serializers import CommentSerializer, RatingSerializer, CommentReportSerializer
 
 
 class ReviewViewSet(viewsets.ViewSet):
 
-    # -------------------------
-    #  لیست نظرات یک دوره
-    # -------------------------
     @action(detail=True, methods=["get"], permission_classes=[AllowAny])
     def comments(self, request, pk=None):
         course = Course.objects.get(id=pk)
@@ -21,28 +18,21 @@ class ReviewViewSet(viewsets.ViewSet):
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
 
-    # -------------------------
-    #  ثبت نظر
-    # -------------------------
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
     def add_comment(self, request, pk=None):
         course = Course.objects.get(id=pk)
 
-        # فقط خریداران دوره
         if not Enrollment.objects.filter(user=request.user, course=course).exists():
             return Response({"error": "برای ثبت نظر باید دوره را خریداری کرده باشید"}, status=403)
 
         comment = Comment.objects.create(
             user=request.user,
             course=course,
-            text=request.data.get("text")
+            text=request.data.get("text"),
         )
 
         return Response(CommentSerializer(comment).data)
 
-    # -------------------------
-    #  ثبت یا ویرایش امتیاز
-    # -------------------------
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
     def rate(self, request, pk=None):
         course = Course.objects.get(id=pk)
@@ -51,21 +41,17 @@ class ReviewViewSet(viewsets.ViewSet):
         if value < 1 or value > 5:
             return Response({"error": "امتیاز باید بین 1 تا 5 باشد"}, status=400)
 
-        # فقط خریداران دوره
         if not Enrollment.objects.filter(user=request.user, course=course).exists():
             return Response({"error": "برای امتیازدهی باید دوره را خریداری کرده باشید"}, status=403)
 
         rating, created = Rating.objects.update_or_create(
             user=request.user,
             course=course,
-            defaults={"value": value}
+            defaults={"value": value},
         )
 
         return Response(RatingSerializer(rating).data)
 
-    # -------------------------
-    #  میانگین امتیاز دوره
-    # -------------------------
     @action(detail=True, methods=["get"], permission_classes=[AllowAny])
     def average(self, request, pk=None):
         course = Course.objects.get(id=pk)
@@ -87,8 +73,7 @@ class ReviewViewSet(viewsets.ViewSet):
         CommentReport.objects.create(
             reporter=request.user,
             comment=comment,
-            reason=serializer.validated_data["reason"]
+            reason=serializer.validated_data["reason"],
         )
 
         return Response({"message": "گزارش شما ثبت شد"})
-

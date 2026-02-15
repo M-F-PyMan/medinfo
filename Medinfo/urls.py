@@ -13,6 +13,9 @@ urlpatterns = [
     path('api/reviews/', include('reviews.urls')),
     path('api/coupons/', include('coupons.urls')),
     path('api/notifications/', include('notifications.urls')),
+    path('api/payout/', include('payout.urls')),
+    path('api/instructor/', include('instructor.urls')),
+    path('api/messaging/', include('messaging.urls')),
 ]
 
 # Media & Static (development only)

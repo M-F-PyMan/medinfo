@@ -59,8 +59,13 @@ class InstructorProfile(models.Model):
     linkedin   = models.URLField(blank=True, null=True)
     website    = models.URLField(blank=True, null=True)
 
+    # 🔥 NEW: اطلاعات بانکی برای تسویه
+    sheba_number = models.CharField(max_length=26, blank=True, null=True, help_text="شماره شبا بدون IR")
+    card_number  = models.CharField(max_length=16, blank=True, null=True, help_text="شماره کارت (اختیاری)")
+
     def __str__(self):
         return f"Instructor: {self.user.username}"
+
 
 
 class Enrollment(models.Model):
@@ -73,3 +78,4 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f"{self.user.username} -> {self.course}"
+
