@@ -1,3 +1,22 @@
 from django.contrib import admin
+from .models import Transaction, Cart, CartItem
 
-# Register your models here.
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "course", "amount", "status", "created_at")
+    list_filter = ("status", "course")
+    search_fields = ("user__username", "course__title")
+
+
+@admin.register(Cart)
+class CartAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "created_at")
+    search_fields = ("user__username",)
+
+
+@admin.register(CartItem)
+class CartItemAdmin(admin.ModelAdmin):
+    list_display = ("id", "cart", "course", "price_at_time", "added_at")
+    list_filter = ("course",)
+    search_fields = ("cart__user__username", "course__title")

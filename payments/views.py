@@ -11,7 +11,47 @@ from azbankgateways.exceptions import AZBankGatewaysException
 
 from accounts.models import Enrollment
 from courses.models import Course
-from .models import Transaction
+from .models import Transaction, Cart, CartItem
+from .serializers import CartSerializer
+
+
+class CartViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        return Response(CartSerializer(cart).data)
+
+    @action(detail=False, methods=["post"])
+    def add(self, request):
+        course_id = request.data.get("course_id")
+        course = get_object_or_404(Course, id=course_id)
+
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+
+        item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            course=course,
+            defaults={"price_at_time": course.sale_price or course.price}
+        )
+
+        if not created:
+            return Response({"message": "این دوره قبلاً در سبد خرید شما وجود دارد"})
+
+        return Response({"message": "به سبد خرید اضافه شد"})
+
+    @action(detail=False, methods=["post"])
+    def remove(self, request):
+        course_id = request.data.get("course_id")
+        cart = Cart.objects.get(user=request.user)
+        CartItem.objects.filter(cart=cart, course_id=course_id).delete()
+        return Response({"message": "از سبد خرید حذف شد"})
+
+    @action(detail=False, methods=["post"])
+    def clear(self, request):
+        cart = Cart.objects.get(user=request.user)
+        cart.items.all().delete()
+        return Response({"message": "سبد خرید خالی شد"})
 
 
 class PaymentViewSet(viewsets.ViewSet):
@@ -25,7 +65,6 @@ class PaymentViewSet(viewsets.ViewSet):
         course = get_object_or_404(Course, id=pk)
         amount = course.sale_price or course.price
 
-        # ایجاد تراکنش
         transaction = Transaction.objects.create(
             user=request.user,
             course=course,
@@ -82,12 +121,10 @@ class PaymentViewSet(viewsets.ViewSet):
             transaction.save()
             return HttpResponse("پرداخت ناموفق بود")
 
-        # پرداخت موفق
         transaction.status = "SUCCESS"
         transaction.ref_id = bank_record.ref_id
         transaction.save()
 
-        # ثبت نام کاربر در دوره
         Enrollment.objects.get_or_create(
             user=transaction.user,
             course=transaction.course

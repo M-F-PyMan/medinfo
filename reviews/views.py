@@ -1,12 +1,12 @@
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from accounts.models import Enrollment
-from .models import Rating, Comment
-from .serializers import RatingSerializer, CommentSerializer
 from courses.models import Course
+from .models import Comment, Rating
+from .serializers import CommentSerializer, RatingSerializer
 
 
 class ReviewViewSet(viewsets.ViewSet):
@@ -22,7 +22,7 @@ class ReviewViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     # -------------------------
-    #  ارسال نظر
+    #  ثبت نظر
     # -------------------------
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
     def add_comment(self, request, pk=None):
