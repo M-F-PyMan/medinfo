@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CourseViewSet, LessonViewSet
+from .views import CourseViewSet, LessonViewSet,CourseSearchView,HomeView
 
 router = DefaultRouter()
 router.register("courses", CourseViewSet, basename="courses")
@@ -21,4 +21,6 @@ urlpatterns = [
         LessonViewSet.as_view({"post": "progress"}),
         name="lesson-progress"
     ),
+    path("search/", CourseSearchView.as_view(), name="course-search"),
+    path("home/", HomeView.as_view(), name="home"),
 ]

@@ -1,8 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
-from rest_framework.response import Response
-
 from .models import Course, Lesson, LessonProgress
 from .serializers import (
     CourseListSerializer,
@@ -11,6 +9,13 @@ from .serializers import (
     LessonProgressSerializer,
 )
 from accounts.models import Enrollment
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Q
+from django.db.models import Count, Avg
+
+
+
 
 
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
@@ -91,3 +96,99 @@ class LessonViewSet(viewsets.ReadOnlyModelViewSet):
         serializer.save()
 
         return Response({"message": "Progress updated"})
+
+
+class CourseSearchView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        queryset = Course.objects.all()
+
+        # -------------------------
+        #  جستجو
+        # -------------------------
+        q = request.GET.get("q")
+        if q:
+            queryset = queryset.filter(
+                Q(title__icontains=q) |
+                Q(description__icontains=q)
+            )
+
+        # -------------------------
+        #  فیلتر دسته‌بندی
+        # -------------------------
+        category = request.GET.get("category")
+        if category:
+            queryset = queryset.filter(category=category)
+
+        # -------------------------
+        #  فیلتر سطح
+        # -------------------------
+        level = request.GET.get("level")
+        if level:
+            queryset = queryset.filter(level=level)
+
+        # -------------------------
+        #  فیلتر قیمت
+        # -------------------------
+        min_price = request.GET.get("min_price")
+        max_price = request.GET.get("max_price")
+
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
+
+        # -------------------------
+        #  مرتب‌سازی
+        # -------------------------
+        ordering = request.GET.get("ordering")
+        if ordering == "newest":
+            queryset = queryset.order_by("-id")
+        elif ordering == "price_low":
+            queryset = queryset.order_by("price")
+        elif ordering == "price_high":
+            queryset = queryset.order_by("-price")
+
+        serializer = CourseListSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+
+
+
+class HomeView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        # -------------------------
+        #  جدیدترین دوره‌ها
+        # -------------------------
+        newest = Course.objects.order_by("-id")[:8]
+
+        # -------------------------
+        #  پرفروش‌ترین دوره‌ها
+        # -------------------------
+        best_sellers = Course.objects.annotate(
+            enroll_count=Count("enrollments")
+        ).order_by("-enroll_count")[:8]
+
+        # -------------------------
+        #  محبوب‌ترین دوره‌ها (بر اساس امتیاز)
+        # -------------------------
+        top_rated = Course.objects.annotate(
+            avg_rating=Avg("ratings__value")
+        ).order_by("-avg_rating")[:8]
+
+        # -------------------------
+        #  دسته‌بندی‌ها (unique)
+        # -------------------------
+        categories = Course.objects.values_list("category", flat=True).distinct()
+
+        return Response({
+            "newest": CourseListSerializer(newest, many=True).data,
+            "best_sellers": CourseListSerializer(best_sellers, many=True).data,
+            "top_rated": CourseListSerializer(top_rated, many=True).data,
+            "categories": categories,
+        })
