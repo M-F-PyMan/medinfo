@@ -9,22 +9,29 @@ from .serializers import (
     RegisterSerializer,
     LoginSerializer,
     MeSerializer,
-    UserSerializer,
+    UserSerializer
 )
-from .models import User, Enrollment
+from .models import User
+from accounts.models import Enrollment
 from courses.serializers import CourseListSerializer
 
 
+# ---------------------------------------------------
+#   لیست دوره‌های خریداری‌شده کاربر
+# ---------------------------------------------------
 class MyCoursesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        enrollments = Enrollment.objects.filter(user=request.user).select_related("course")
+        enrollments = Enrollment.objects.filter(user=request.user)
         courses = [en.course for en in enrollments]
         serializer = CourseListSerializer(courses, many=True)
         return Response(serializer.data)
 
 
+# ---------------------------------------------------
+#   احراز هویت (ثبت‌نام، ورود، خروج، اطلاعات کاربر)
+# ---------------------------------------------------
 class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], permission_classes=[AllowAny])

@@ -13,6 +13,9 @@ from accounts.models import Enrollment
 from courses.models import Course
 from .models import Transaction, Cart, CartItem
 from .serializers import CartSerializer
+from coupons.models import Coupon, CouponRedemption
+from coupons.serializers import CouponValidateSerializer
+from django.utils import timezone
 
 
 class CartViewSet(viewsets.ViewSet):
@@ -58,18 +61,41 @@ class PaymentViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
     # -------------------------
-    #  شروع پرداخت
+    #  شروع پرداخت یک دوره
+    #  ورودی اختیاری: coupon_code
     # -------------------------
     @action(detail=True, methods=["post"])
     def start(self, request, pk=None):
+        user = request.user
         course = get_object_or_404(Course, id=pk)
-        amount = course.sale_price or course.price
 
+        base_amount = course.sale_price or course.price
+        amount = base_amount
+
+        coupon_code = request.data.get("coupon_code")
+        coupon_obj = None
+
+        # اگر کوپن ارسال شده، سعی می‌کنیم وریفای کنیم
+        if coupon_code:
+            serializer = CouponValidateSerializer(
+                data={"code": coupon_code, "course_id": course.id},
+                context={"request": request}
+            )
+            if serializer.is_valid():
+                coupon_obj = serializer.validated_data["coupon"]
+                if coupon_obj.discount_type == Coupon.PERCENT:
+                    amount = int(base_amount * (100 - coupon_obj.amount) / 100)
+                else:
+                    amount = max(0, base_amount - coupon_obj.amount)
+            # اگر نامعتبر بود، عمداً خطا نمی‌دهیم؛ پرداخت بدون تخفیف ادامه می‌یابد
+
+        # ایجاد تراکنش
         transaction = Transaction.objects.create(
-            user=request.user,
+            user=user,
             course=course,
             amount=amount,
-            status="PENDING"
+            status="PENDING",
+            coupon_code=coupon_obj.code if coupon_obj else None,
         )
 
         factory = bankfactories.BankFactory()
@@ -79,7 +105,7 @@ class PaymentViewSet(viewsets.ViewSet):
             bank.set_request(request)
             bank.set_amount(amount)
             bank.set_client_callback_url(reverse("payments:payments-callback"))
-            bank.set_mobile_number(request.user.profile.phone)
+            bank.set_mobile_number(user.profile.phone)
 
             bank_record = bank.ready()
             bank_record.extra_information = {
@@ -97,7 +123,7 @@ class PaymentViewSet(viewsets.ViewSet):
             return Response({"error": str(e)}, status=500)
 
     # -------------------------
-    #  Callback
+    #  Callback درگاه
     # -------------------------
     @action(detail=False, methods=["get"])
     def callback(self, request):
@@ -116,18 +142,34 @@ class PaymentViewSet(viewsets.ViewSet):
         except Transaction.DoesNotExist:
             raise Http404("Transaction not found")
 
+        # پرداخت ناموفق
         if not bank_record.is_success:
             transaction.status = "FAIL"
             transaction.save()
             return HttpResponse("پرداخت ناموفق بود")
 
+        # پرداخت موفق
         transaction.status = "SUCCESS"
         transaction.ref_id = bank_record.ref_id
         transaction.save()
 
+        # ثبت‌نام کاربر در دوره
         Enrollment.objects.get_or_create(
             user=transaction.user,
             course=transaction.course
         )
 
+        # اگر کوپن استفاده شده بود، ثبت استفاده
+        if transaction.coupon_code:
+            try:
+                coupon = Coupon.objects.get(code__iexact=transaction.coupon_code)
+                CouponRedemption.objects.create(
+                    coupon=coupon,
+                    user=transaction.user
+                )
+            except Coupon.DoesNotExist:
+                # اگر کوپن پیدا نشد، پرداخت نباید دچار مشکل شود
+                pass
+
         return HttpResponse("پرداخت موفقیت‌آمیز بود")
+

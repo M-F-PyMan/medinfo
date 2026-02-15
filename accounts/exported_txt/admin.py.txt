@@ -1,9 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-
 from .models import User, Profile, InstructorProfile, Enrollment
 
+
+# ---------------------------
+#  Inline Profiles
+# ---------------------------
 
 class ProfileInline(admin.StackedInline):
     model = Profile
@@ -16,6 +19,10 @@ class InstructorProfileInline(admin.StackedInline):
     can_delete = False
     verbose_name_plural = "پروفایل مدرس"
 
+
+# ---------------------------
+#  UserAdmin سفارشی
+# ---------------------------
 
 class UserAdmin(BaseUserAdmin):
     add_form = UserCreationForm
@@ -33,6 +40,7 @@ class UserAdmin(BaseUserAdmin):
         "is_teacher",
         "date_joined",
     )
+
     list_filter = (
         "is_active",
         "is_staff",
@@ -60,6 +68,10 @@ class UserAdmin(BaseUserAdmin):
     inlines = [ProfileInline, InstructorProfileInline]
 
 
+# ---------------------------
+#  Enrollment Admin
+# ---------------------------
+
 @admin.register(Enrollment)
 class EnrollmentAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "course", "created_at")
@@ -67,5 +79,9 @@ class EnrollmentAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "course__title")
     readonly_fields = ("created_at",)
 
+
+# ---------------------------
+#  ثبت مدل‌ها
+# ---------------------------
 
 admin.site.register(User, UserAdmin)

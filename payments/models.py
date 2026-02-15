@@ -14,16 +14,19 @@ class Transaction(models.Model):
     user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="transactions")
     course = models.ForeignKey("courses.Course", on_delete=models.CASCADE, related_name="transactions")
 
-    amount = models.PositiveIntegerField()
+    amount = models.PositiveIntegerField()  # مبلغ نهایی (با یا بدون تخفیف)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='INIT')
 
     authority = models.CharField(max_length=128, null=True, blank=True)
     ref_id = models.CharField(max_length=128, null=True, blank=True)
 
+    coupon_code = models.CharField(max_length=50, null=True, blank=True)  # اختیاری
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Transaction {self.id} - {self.status}"
+
 
 
 class Cart(models.Model):
