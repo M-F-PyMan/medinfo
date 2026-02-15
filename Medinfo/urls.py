@@ -12,6 +12,7 @@ urlpatterns = [
     path('api/payments/', include('payments.urls')),
     path('api/reviews/', include('reviews.urls')),
     path('api/coupons/', include('coupons.urls')),
+    path('api/notifications/', include('notifications.urls')),
 ]
 
 # Media & Static (development only)

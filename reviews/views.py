@@ -77,3 +77,18 @@ class ReviewViewSet(viewsets.ViewSet):
         avg = round(sum(r.value for r in ratings) / ratings.count(), 1)
 
         return Response({"average": avg})
+
+    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    def report(self, request, pk=None):
+        comment = Comment.objects.get(id=pk)
+        serializer = CommentReportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        CommentReport.objects.create(
+            reporter=request.user,
+            comment=comment,
+            reason=serializer.validated_data["reason"]
+        )
+
+        return Response({"message": "گزارش شما ثبت شد"})
+
