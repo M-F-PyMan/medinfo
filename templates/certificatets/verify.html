@@ -1,0 +1,147 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>گواهی پایان دوره MEDINFO</title>
+    <style>
+        @font-face {
+            font-family: 'Nastaliq';
+            src: url("{% static 'fonts/IranNastaliq.ttf' %}") format('truetype');
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0f172a;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .certificate-wrapper {
+            max-width: 1200px;
+            width: 100%;
+            padding: 16px;
+        }
+
+        .certificate {
+            position: relative;
+            background-image: url("{% static 'images/certificates/certificate-bg-gold.png' %}");
+            background-size: cover;
+            background-position: center;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            padding: 80px 100px;
+        }
+
+        @media (min-width: 1024px) {
+            .certificate {
+                aspect-ratio: 4 / 3;
+            }
+        }
+
+        @media (max-width: 1023px) {
+            .certificate {
+                padding: 40px 24px;
+            }
+        }
+
+        .certificate-logo {
+            width: 160px;
+            margin: 0 auto 20px auto;
+            display: block;
+        }
+
+        .meta-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #4b5563;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            text-align: center;
+            font-family: 'Nastaliq', serif;
+            font-size: 40px;
+            margin-bottom: 24px;
+            color: #111827;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 40px;
+            color: #374151;
+        }
+
+        .field {
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 20px;
+            color: #111827;
+        }
+
+        .label {
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        .value {
+            font-family: 'Nastaliq', serif;
+            font-size: 28px;
+            margin-top: 4px;
+        }
+
+        .qr {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 100px;
+            height: 100px;
+        }
+
+        .serial {
+            direction: ltr;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+<div class="certificate-wrapper">
+    <div class="certificate">
+        <img src="{% static 'images/logo/medinfo-logo.png' %}" class="certificate-logo" alt="MEDINFO Logo">
+
+        <div class="meta-top">
+            <div>تاریخ صدور: {{ certificate.issued_at.date }}</div>
+            <div class="serial">شماره سریال: {{ certificate.serial }}</div>
+        </div>
+
+        <div class="title">گواهی پایان دوره</div>
+        <div class="subtitle">این گواهی توسط پلتفرم MEDINFO صادر شده است.</div>
+
+        <div class="field">
+            <div class="label">این گواهی اعطا می‌شود به:</div>
+            <div class="value">{{ certificate.user.name }}</div>
+        </div>
+
+        <div class="field">
+            <div class="label">به پاس گذراندن دوره:</div>
+            <div class="value">{{ certificate.course.title }}</div>
+        </div>
+
+        <div class="field">
+            <div class="label">مدرس دوره:</div>
+            <div class="value">{{ certificate.course.teacher.name }}</div>
+        </div>
+
+        {% if certificate.qr_code %}
+        <img src="{{ certificate.qr_code.url }}" class="qr" alt="QR Code">
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>
