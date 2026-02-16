@@ -7,5 +7,5 @@ router.register("certificates", CertificateViewSet, basename="certificates")
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("certificate/verify/<str:serial>/", CertificateVerifyPage.as_view(), name="certificate-verify"), 
+    path("certificate/verify/<str:serial>/", CertificateVerifyPage.as_view(), name="certificate-verify"),
 ]
