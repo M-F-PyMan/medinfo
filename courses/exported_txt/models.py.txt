@@ -4,6 +4,7 @@ from accounts.models import User
 
 
 class Course(models.Model):
+    has_certificate = models.BooleanField(default=False)
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(blank=True, null=True)
@@ -15,6 +16,11 @@ class Course(models.Model):
         null=True,
         related_name="teacher_courses"
     )
+    STATUS_CHOICES = [("draft", "پیش‌نویس"),
+                      ("published", "منتشر شده"),
+                      ("completed", "تکمیل شده"),
+                      ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
 
     price = models.PositiveIntegerField(default=0)
     sale_price = models.PositiveIntegerField(blank=True, null=True)
@@ -59,8 +65,10 @@ class LessonProgress(models.Model):
     completed = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
+
     class Meta:
         unique_together = ("user", "lesson")
 
     def __str__(self):
         return f"{self.user.username} - {self.lesson.title} ({self.watched_seconds}s)"
+

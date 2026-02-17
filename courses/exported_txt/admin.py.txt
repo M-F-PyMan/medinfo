@@ -20,9 +20,9 @@ class LessonInline(admin.TabularInline):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ("id", "title", "price", "sale_price", "created_at")
+    list_display = ("id", "title", "price", "sale_price", "has_certificate", "status", "created_at")
+    list_filter = ("created_at", "has_certificate", "status")
     search_fields = ("title", "description")
-    list_filter = ("created_at",)
     inlines = [LessonInline]
 
 
@@ -47,3 +47,5 @@ class LessonProgressAdmin(admin.ModelAdmin):
     list_filter = ("completed", "lesson__course")
     search_fields = ("user__username", "lesson__title")
     readonly_fields = ("updated_at",)
+
+

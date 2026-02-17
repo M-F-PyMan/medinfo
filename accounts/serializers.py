@@ -73,8 +73,7 @@ class LoginSerializer(serializers.Serializer):
 
 
 class MeSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer(read_only=True)
-    enrollments = EnrollmentSerializer(many=True, read_only=True)
+    instructor_courses = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -88,4 +87,18 @@ class MeSerializer(serializers.ModelSerializer):
             "date_joined",
             "profile",
             "enrollments",
+            "instructor_courses",
         ]
+
+    def get_instructor_courses(self, obj):
+        courses = obj.teacher_courses.all()
+        return [
+            {
+                "id": c.id,
+                "title": c.title,
+                "lessons_count": c.lessons_count(),
+                "created_at": c.created_at,
+            }
+            for c in courses
+        ]
+

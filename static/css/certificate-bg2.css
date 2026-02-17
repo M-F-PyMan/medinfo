@@ -1,0 +1,193 @@
+/* ===========================
+   FONTS
+=========================== */
+@font-face {
+    font-family: 'Shabnam';
+    src: url("../fonts/Shabnam/Shabnam.ttf") format("truetype");
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: 'Shabnam';
+    src: url("../fonts/Shabnam/Shabnam-Bold.ttf") format("truetype");
+    font-weight: 700;
+}
+
+@font-face {
+    font-family: 'Shekasteh';
+    src: url("../fonts/Shekasteh V2.001/Shekasteh V2.001.ttf") format("truetype");
+    font-weight: 400;
+}
+
+/* ===========================
+   PAGE BASE
+=========================== */
+@page {
+    size: A4 landscape;
+    margin: 0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #0f172a;
+    font-family: "Shabnam", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.page {
+    width: 297mm;
+    height: 210mm;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ===========================
+   CERTIFICATE BOX
+=========================== */
+.certificate {
+    width: 277mm;
+    height: 190mm;
+    background-image: url("../images/certificates/certificate-bg2.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    padding: 25mm;
+}
+
+/* ===========================
+   DATE INSIDE GOLD RIBBON
+=========================== */
+.ribbon-date {
+    position: absolute;
+    top: 45mm;
+    left: 15mm;
+    font-size: 4.2mm;
+    font-weight: 600;
+    color: #666;
+}
+
+/* ===========================
+   SERIAL NEXT TO TITLE
+=========================== */
+.serial-top {
+    position: absolute;
+    top: 80mm;
+    right: 22mm;
+    font-size: 4mm;
+    font-weight: 600;
+    color: #444;
+    direction: ltr;
+
+}
+
+/* ===========================
+   TOP LOGO
+=========================== */
+.certificate-logo {
+    width: 40mm;
+    display: block;
+    margin: -2mm auto 4mm auto;
+}
+
+/* ===========================
+   TITLES
+=========================== */
+.title {
+    text-align: center;
+    font-size: 12mm;
+    font-weight: bold;
+    margin-top: -12mm;   /* بالا رفتن عنوان */
+    margin-bottom: 1mm;
+    color: #2a2a2a;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 4.5mm;
+    color: #555;
+    margin-bottom: 4mm; /* بالا رفتن زیرعنوان */
+}
+
+/* ===========================
+   BLOCK 1: INTRO
+=========================== */
+.block-intro {
+    text-align: center;
+    font-size: 5mm;
+    margin-top: -2mm;   /* بالا رفتن جمله «این گواهی به» */
+    margin-bottom: 4mm;
+}
+
+/* ===========================
+   BLOCK 2: USER NAME
+=========================== */
+.block-name {
+    font-family: 'Shekasteh';
+    font-size: 15mm;
+    text-align: center;
+    margin-top: 0mm;
+    margin-bottom: 14mm; /* فاصله کامل از خط موجی */
+    color: #222;
+}
+
+/* ===========================
+   BLOCK 3: COURSE SENTENCE
+=========================== */
+.block-course {
+    text-align: center;
+    font-size: 5mm;
+    line-height: 10mm;
+    margin-bottom: 12mm;
+}
+
+.block-course .value {
+    font-weight: bold;
+}
+
+/* ===========================
+   BLOCK 4: DISCLAIMER
+=========================== */
+.block-disclaimer {
+    text-align: center;
+    font-size: 4.2mm;
+    line-height: 8mm;
+    color: #5c5c5c;
+    max-width: 200mm;
+    margin: -8mm auto 0 auto; /* ۲ میلی‌متر بالاتر */
+}
+
+.block-disclaimer strong {
+    font-weight: bold;
+}
+
+/* ===========================
+   QR CODE
+=========================== */
+.qr {
+    position: absolute;
+    bottom: 15mm;
+    right: 15mm;
+    width: 35mm;
+    height: 35mm;
+}
+
+/* ===========================
+   BOTTOM LINES + LOGO
+=========================== */
+
+
+
+
+.bottom-logo {
+    position: absolute;
+    bottom: 2mm;   /* 8mm پایین‌تر از مقدار قبلی (10mm → 2mm) */
+    left: 20mm;    /* 4mm چپ‌تر از مقدار قبلی (40mm → 36mm) */
+    width: 30mm;
+}
+

@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>گواهی پایان دوره MEDINFO</title>
+    <link rel="stylesheet" href="/static/css/certificate-bg2.css?v=5001">
+</head>
+
+<body>
+<div class="page">
+    <div class="certificate">
+
+        <!-- DATE INSIDE GOLD RIBBON -->
+        <div class="ribbon-date">{{ certificate.jalali_date }}</div>
+
+        <!-- SERIAL NEXT TO TITLE -->
+        <div class="serial-top">Serial: {{ certificate.serial }}</div>
+
+        <!-- TOP LOGO -->
+        <img src="{% static 'images/logo/medinfo-logo2.png' %}" class="certificate-logo" alt="MEDINFO Logo">
+
+        <!-- TITLE -->
+        <div class="title">گواهی پایان دوره</div>
+        <div class="subtitle">این گواهی توسط پلتفرم MEDINFO صادر شده است.</div>
+
+        <!-- BLOCK 1: INTRO -->
+        <div class="block-intro">
+            این گواهی به
+        </div>
+
+        <!-- BLOCK 2: USER NAME -->
+        <div class="block-name">
+            {{ certificate.user.name }}
+        </div>
+
+        <!-- BLOCK 3: COURSE SENTENCE -->
+        <div class="block-course">
+            به پاس گذراندن دورهٔ
+            <span class="value">{{ certificate.course.title }}</span>
+            که توسط مدرس محترم
+            <span class="value">{{ certificate.course.teacher.name }}</span>
+            در
+            <span class="value">{{ certificate.course.lesson_count|default:2 }}</span>
+            جلسه ارائه گردیده است، اعطا می‌گردد.
+        </div>
+
+        <!-- BLOCK 4: DISCLAIMER -->
+        <div class="block-disclaimer">
+            این گواهی معادل مدرک دانشگاهی یا اجازه فعالیت صنفی نبوده و صرفاً تأیید می‌کند که
+            <strong>{{ certificate.user.name }}</strong>
+            دورهٔ
+            <strong>{{ certificate.course.title }}</strong>
+            را با موفقیت به پایان رسانده است.
+        </div>
+
+        <!-- QR CODE -->
+        {% if certificate.qr_code %}
+            <img src="{{ certificate.qr_code.url }}" class="qr" alt="QR Code">
+        {% endif %}
+
+        <!-- BOTTOM LINES + LOGO -->
+        <div class="bottom-line top"></div>
+        <div class="bottom-line bottom"></div>
+
+        <img src="{% static 'images/logo/medinfo-logo2.png' %}" class="bottom-logo" alt="MEDINFO Logo">
+
+    </div>
+</div>
+</body>
+</html>

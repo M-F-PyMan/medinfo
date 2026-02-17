@@ -17,3 +17,4 @@ class CertificateSerializer(serializers.ModelSerializer):
             "qr_code",
         ]
         read_only_fields = fields
+

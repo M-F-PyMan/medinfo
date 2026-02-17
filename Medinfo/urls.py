@@ -17,6 +17,9 @@ urlpatterns = [
     path('api/instructor/', include('instructor.urls')),
     path('api/messaging/', include('messaging.urls')),
     path('api/wishlist/', include('wishlist.urls')),
+    path('api/certificates/', include('certificates.urls')),
+# Public HTML pages
+    path('', include('certificates.public_urls')),
 ]
 
 # Media & Static (development only)

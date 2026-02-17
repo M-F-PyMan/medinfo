@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'instructor.apps.InstructorConfig',
     'messaging.apps.MessagingConfig',
     'wishlist.apps.WishlistConfig',
+    'certificates.apps.CertificatesConfig',
 ]
 
 
@@ -104,10 +105,17 @@ WSGI_APPLICATION = 'Medinfo.wsgi.application'
 # -------------------------
 #  TEMPLATES
 # -------------------------
+
+
+# مسیر درست ریشهٔ پروژه
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [
+            BASE_DIR / 'templates',   # مسیر درست پوشهٔ templates
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -118,6 +126,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 
 # -------------------------
