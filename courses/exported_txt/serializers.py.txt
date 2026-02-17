@@ -24,7 +24,7 @@ class LessonSerializer(serializers.ModelSerializer):
 # ---------------------------------------------------
 class CourseListSerializer(serializers.ModelSerializer):
     teacher_name = serializers.CharField(source="teacher.name", read_only=True)
-    lessons_count = serializers.IntegerField(source="lessons.count", read_only=True)
+    lessons_count = serializers.IntegerField(source="lessons_count", read_only=True)
 
     class Meta:
         model = Course
@@ -46,6 +46,7 @@ class CourseListSerializer(serializers.ModelSerializer):
 class CourseDetailSerializer(serializers.ModelSerializer):
     teacher_name = serializers.CharField(source="teacher.name", read_only=True)
     lessons = LessonSerializer(many=True, read_only=True)
+    lessons_count = serializers.IntegerField(source="lessons_count", read_only=True)
 
     # نظرات
     comments = CommentSerializer(many=True, read_only=True)
@@ -73,6 +74,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             "level",
             "teacher_name",
             "lessons",
+            "lessons_count",
             "comments",
             "comments_count",
             "average_rating",
@@ -84,7 +86,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     # -------------------------
     def get_average_rating(self, obj):
         ratings = obj.ratings.all()
-        if ratings.count() == 0:
+        if not ratings.exists():
             return 0
         return round(sum(r.value for r in ratings) / ratings.count(), 1)
 

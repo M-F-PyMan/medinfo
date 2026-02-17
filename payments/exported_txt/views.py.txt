@@ -15,6 +15,10 @@ from .models import Transaction, Cart, CartItem
 from .serializers import CartSerializer
 from coupons.models import Coupon, CouponRedemption
 from coupons.serializers import CouponValidateSerializer
+from notifications.utils import create_notification
+from payout.models import InstructorEarning, PlatformConfig
+from django.db.models import Sum
+
 
 
 class CartViewSet(viewsets.ViewSet):
@@ -55,9 +59,6 @@ class CartViewSet(viewsets.ViewSet):
         cart.items.all().delete()
         return Response({"message": "سبد خرید خالی شد"})
 
-    # -------------------------
-    #  خلاصه سبد + کوپن اختیاری
-    # -------------------------
     @action(detail=False, methods=["post"])
     def summary(self, request):
         cart, _ = Cart.objects.get_or_create(user=request.user)
@@ -71,7 +72,6 @@ class CartViewSet(viewsets.ViewSet):
         coupon_obj = None
 
         if coupon_code and items.exists():
-            # از course_id اولین آیتم برای وریفای استفاده می‌کنیم
             first_course = items.first().course
             serializer = CouponValidateSerializer(
                 data={"code": coupon_code, "course_id": first_course.id},
@@ -93,13 +93,14 @@ class CartViewSet(viewsets.ViewSet):
             "cart": CartSerializer(cart).data,
         })
 
+
+
 class PaymentViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
 
-    # -------------------------
-    #  شروع پرداخت یک دوره
-    #  ورودی اختیاری: coupon_code
-    # -------------------------
+    # ---------------------------------------------------------
+    # شروع پرداخت تک‌دوره‌ای
+    # ---------------------------------------------------------
     @action(detail=True, methods=["post"])
     def start(self, request, pk=None):
         user = request.user
@@ -111,6 +112,7 @@ class PaymentViewSet(viewsets.ViewSet):
         coupon_code = request.data.get("coupon_code")
         coupon_obj = None
 
+        # وریفای کوپن
         if coupon_code:
             serializer = CouponValidateSerializer(
                 data={"code": coupon_code, "course_id": course.id},
@@ -123,6 +125,7 @@ class PaymentViewSet(viewsets.ViewSet):
                 else:
                     amount = max(0, base_amount - coupon_obj.amount)
 
+        # ساخت تراکنش
         transaction = Transaction.objects.create(
             user=user,
             course=course,
@@ -132,8 +135,8 @@ class PaymentViewSet(viewsets.ViewSet):
             is_cart_payment=False,
         )
 
+        # اتصال به درگاه
         factory = bankfactories.BankFactory()
-
         try:
             bank = factory.auto_create(bank_models.BankType.ZARINPAL)
             bank.set_request(request)
@@ -156,10 +159,9 @@ class PaymentViewSet(viewsets.ViewSet):
         except AZBankGatewaysException as e:
             return Response({"error": str(e)}, status=500)
 
-    # -------------------------
-    #  شروع پرداخت سبد خرید
-    #  ورودی اختیاری: coupon_code
-    # -------------------------
+    # ---------------------------------------------------------
+    # شروع پرداخت سبد خرید
+    # ---------------------------------------------------------
     @action(detail=False, methods=["post"])
     def start_cart(self, request):
         user = request.user
@@ -176,6 +178,7 @@ class PaymentViewSet(viewsets.ViewSet):
         coupon_code = request.data.get("coupon_code")
         coupon_obj = None
 
+        # وریفای کوپن
         if coupon_code:
             first_course = items.first().course
             serializer = CouponValidateSerializer(
@@ -190,6 +193,7 @@ class PaymentViewSet(viewsets.ViewSet):
                     discount = min(base_total, coupon_obj.amount)
                 amount = base_total - discount
 
+        # ساخت تراکنش
         transaction = Transaction.objects.create(
             user=user,
             course=None,
@@ -199,8 +203,8 @@ class PaymentViewSet(viewsets.ViewSet):
             is_cart_payment=True,
         )
 
+        # اتصال به درگاه
         factory = bankfactories.BankFactory()
-
         try:
             bank = factory.auto_create(bank_models.BankType.ZARINPAL)
             bank.set_request(request)
@@ -223,9 +227,9 @@ class PaymentViewSet(viewsets.ViewSet):
         except AZBankGatewaysException as e:
             return Response({"error": str(e)}, status=500)
 
-    # -------------------------
-    #  Callback درگاه
-    # -------------------------
+    # ---------------------------------------------------------
+    # Callback درگاه
+    # ---------------------------------------------------------
     @action(detail=False, methods=["get"])
     def callback(self, request):
         tracking_code = request.GET.get(settings.TRACKING_CODE_QUERY_PARAM)
@@ -243,31 +247,73 @@ class PaymentViewSet(viewsets.ViewSet):
         except Transaction.DoesNotExist:
             raise Http404("Transaction not found")
 
+        # پرداخت ناموفق
         if not bank_record.is_success:
             transaction.status = "FAIL"
             transaction.save()
             return HttpResponse("پرداخت ناموفق بود")
 
+        # پرداخت موفق
         transaction.status = "SUCCESS"
         transaction.ref_id = bank_record.ref_id
         transaction.save()
 
         user = transaction.user
 
+        # تنظیمات پلتفرم
+        config = PlatformConfig.objects.first()
+        platform_fee_percent = config.platform_fee_percent if config else 30
+
+        # تابع ساخت درآمد مدرس
+        def create_earning(course, amount):
+            if not course or not course.teacher:
+                return
+
+            gross = amount
+            platform_amount = int(gross * platform_fee_percent / 100)
+            instructor_amount = gross - platform_amount
+
+            InstructorEarning.objects.create(
+                instructor=course.teacher,
+                course=course,
+                transaction=transaction,
+                gross_amount=gross,
+                instructor_amount=instructor_amount,
+                platform_amount=platform_amount,
+            )
+
+        # ---------------------------------------------------------
         # پرداخت سبد خرید
+        # ---------------------------------------------------------
         if transaction.is_cart_payment:
             cart = Cart.objects.get(user=user)
             items = cart.items.select_related("course")
 
+            total_price = sum(item.price_at_time for item in items) or 1
+
             for item in items:
+                share = int(transaction.amount * (item.price_at_time / total_price))
+
                 Enrollment.objects.get_or_create(
                     user=user,
                     course=item.course,
                 )
 
+                create_earning(item.course, share)
+
             cart.items.all().delete()
 
+            create_notification(
+                user=user,
+                type_="payment",
+                title="پرداخت سبد خرید موفق",
+                message="پرداخت سبد خرید شما با موفقیت انجام شد.",
+                target_url="/me/courses/",
+            )
+
+        # ---------------------------------------------------------
         # پرداخت تک‌دوره‌ای
+        # ---------------------------------------------------------
         else:
             if transaction.course:
                 Enrollment.objects.get_or_create(
@@ -275,6 +321,17 @@ class PaymentViewSet(viewsets.ViewSet):
                     course=transaction.course,
                 )
 
+                create_earning(transaction.course, transaction.amount)
+
+                create_notification(
+                    user=user,
+                    type_="payment",
+                    title="پرداخت موفق دوره",
+                    message=f"پرداخت شما برای دوره «{transaction.course.title}» با موفقیت انجام شد.",
+                    target_url=f"/courses/{transaction.course.slug}/",
+                )
+
+        # ثبت استفاده از کوپن
         if transaction.coupon_code:
             try:
                 coupon = Coupon.objects.get(code__iexact=transaction.coupon_code)
@@ -286,3 +343,4 @@ class PaymentViewSet(viewsets.ViewSet):
                 pass
 
         return HttpResponse("پرداخت موفقیت‌آمیز بود")
+

@@ -14,3 +14,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ["id", "user_name", "text", "created_at"]
+
+
+class CommentReportSerializer(serializers.Serializer):
+    reason = serializers.CharField()
