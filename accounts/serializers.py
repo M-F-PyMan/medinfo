@@ -3,6 +3,9 @@ from django.contrib.auth import authenticate
 from .models import User, Profile, InstructorProfile, Enrollment
 
 
+# -------------------------
+# USER SERIALIZER (Admin + User)
+# -------------------------
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -17,6 +20,29 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
 
+# -------------------------
+# INSTRUCTOR PROFILE (Admin)
+# -------------------------
+class InstructorProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)  # بهتر از StringRelatedField برای ادمین
+
+    class Meta:
+        model = InstructorProfile
+        fields = [
+            "id",
+            "user",
+            "degree",
+            "experience",
+            "linkedin",
+            "website",
+            "sheba_number",
+            "card_number",
+        ]
+
+
+# -------------------------
+# PROFILE (Admin + User)
+# -------------------------
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
@@ -29,14 +55,28 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
 
 
+# -------------------------
+# ENROLLMENT (Admin + User)
+# -------------------------
 class EnrollmentSerializer(serializers.ModelSerializer):
     course_id = serializers.IntegerField(source="course.id", read_only=True)
+    course_title = serializers.CharField(source="course.title", read_only=True)
+    user = UserSerializer(read_only=True)
 
     class Meta:
         model = Enrollment
-        fields = ["course_id", "created_at"]
+        fields = [
+            "id",
+            "user",
+            "course_id",
+            "course_title",
+            "created_at",
+        ]
 
 
+# -------------------------
+# REGISTER (User)
+# -------------------------
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -55,6 +95,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+# -------------------------
+# LOGIN (User)
+# -------------------------
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
@@ -72,8 +115,13 @@ class LoginSerializer(serializers.Serializer):
         return data
 
 
+# -------------------------
+# ME (User)
+# -------------------------
 class MeSerializer(serializers.ModelSerializer):
     instructor_courses = serializers.SerializerMethodField()
+    profile = ProfileSerializer(read_only=True)
+    enrollments = EnrollmentSerializer(source="enrollment_set", many=True, read_only=True)
 
     class Meta:
         model = User
@@ -101,4 +149,3 @@ class MeSerializer(serializers.ModelSerializer):
             }
             for c in courses
         ]
-

@@ -6,7 +6,9 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # API endpoints
+    # -------------------------
+    # API USER (Front-end)
+    # -------------------------
     path('api/accounts/', include('accounts.urls')),
     path('api/courses/', include('courses.urls')),
     path('api/payments/', include('payments.urls')),
@@ -19,7 +21,23 @@ urlpatterns = [
     path('api/wishlist/', include('wishlist.urls')),
     path('api/certificates/', include('certificates.urls')),
     path('api/wallet/', include('wallet.urls')),
-# Public HTML pages
+
+    # -------------------------
+    # API ADMIN (React Admin Panel)
+    # -------------------------
+    path('api/', include('accounts.urls_admin')),
+    path('api/', include('courses.urls_admin')),
+    path('api/', include('payments.urls_admin')),
+    path('api/', include('reviews.urls_admin')),
+    path('api/', include('coupons.urls_admin')),
+    path('api/', include('notifications.urls_admin')),
+    path('api/', include('payout.urls_admin')),
+    path('api/', include('messaging.urls_admin')),
+    path('api/', include('wishlist.urls_admin')),
+    path('api/', include('certificates.urls_admin')),
+    path('api/', include('wallet.urls_admin')),
+
+    # Public HTML pages
     path('', include('certificates.public_urls')),
 ]
 

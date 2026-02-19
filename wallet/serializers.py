@@ -1,20 +1,28 @@
 from rest_framework import serializers
-from .models import Wallet, WalletTransaction
-
-
-class WalletTransactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = WalletTransaction
-        fields = ["id", "amount", "type", "description", "created_at"]
+from .models import Wallet, WalletTransaction, WalletChargeRequest
 
 
 class WalletSerializer(serializers.ModelSerializer):
-    transactions = WalletTransactionSerializer(many=True, read_only=True)
+    user = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Wallet
-        fields = ["balance", "transactions"]
+        fields = ["id", "user", "balance"]
 
 
-class WalletChargeSerializer(serializers.Serializer):
-    amount = serializers.IntegerField(min_value=10000)
+class WalletTransactionSerializer(serializers.ModelSerializer):
+    wallet_user = serializers.CharField(source="wallet.user.username", read_only=True)
+
+    class Meta:
+        model = WalletTransaction
+        fields = ["id", "wallet", "wallet_user", "amount", "type", "description", "created_at"]
+        read_only_fields = ["wallet", "created_at"]
+
+
+class WalletChargeRequestSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = WalletChargeRequest
+        fields = ["id", "user", "amount", "status", "authority", "created_at"]
+        read_only_fields = ["user", "status", "authority", "created_at"]

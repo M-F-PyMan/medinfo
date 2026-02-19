@@ -1,63 +1,34 @@
 from django.contrib import admin
+from django.db.models import Sum
 from django.utils.html import format_html
+
 from .models import Wallet, WalletTransaction, WalletChargeRequest
 
 
-# ===========================
-#  Inline: تراکنش‌های کیف پول
-# ===========================
-class WalletTransactionInline(admin.TabularInline):
-    model = WalletTransaction
-    extra = 0
-    readonly_fields = ("amount", "type", "description", "created_at")
-    can_delete = False
-
-
-# ===========================
-#  Wallet Admin
-# ===========================
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "user",
-        "balance",
-        "total_charges",
-        "total_payments",
-        "transaction_count",
-    )
+    list_display = ("user", "balance_display", "total_wallet_charges", "total_wallet_payments")
     search_fields = ("user__username", "user__email")
     readonly_fields = ("balance",)
-    inlines = [WalletTransactionInline]
 
-    def total_charges(self, obj):
-        total = obj.transactions.filter(type="CHARGE").aggregate(sum=models.Sum("amount"))["sum"] or 0
+    def balance_display(self, obj):
+        return f"{obj.balance:,} تومان"
+    balance_display.short_description = "موجودی"
+
+    def total_wallet_charges(self, obj):
+        total = obj.transactions.filter(type="CHARGE").aggregate(sum=Sum("amount"))["sum"] or 0
         return f"{total:,} تومان"
-    total_charges.short_description = "کل شارژها"
+    total_wallet_charges.short_description = "کل شارژها"
 
-    def total_payments(self, obj):
-        total = obj.transactions.filter(type="PAYMENT").aggregate(sum=models.Sum("amount"))["sum"] or 0
+    def total_wallet_payments(self, obj):
+        total = obj.transactions.filter(type="PAYMENT").aggregate(sum=Sum("amount"))["sum"] or 0
         return f"{abs(total):,} تومان"
-    total_payments.short_description = "کل پرداخت‌ها"
-
-    def transaction_count(self, obj):
-        return obj.transactions.count()
-    transaction_count.short_description = "تعداد تراکنش‌ها"
+    total_wallet_payments.short_description = "کل پرداخت‌ها"
 
 
-# ===========================
-#  WalletTransaction Admin
-# ===========================
 @admin.register(WalletTransaction)
 class WalletTransactionAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "wallet_user",
-        "amount_display",
-        "type",
-        "description",
-        "created_at",
-    )
+    list_display = ("wallet_user", "amount_display", "type", "description", "created_at")
     list_filter = ("type", "created_at")
     search_fields = ("wallet__user__username", "description")
 
@@ -74,22 +45,12 @@ class WalletTransactionAdmin(admin.ModelAdmin):
     amount_display.short_description = "مبلغ"
 
 
-# ===========================
-#  WalletChargeRequest Admin
-# ===========================
 @admin.register(WalletChargeRequest)
 class WalletChargeRequestAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "user",
-        "amount",
-        "status",
-        "authority",
-        "created_at",
-    )
+    list_display = ("user", "amount_display", "status", "authority", "created_at")
     list_filter = ("status", "created_at")
     search_fields = ("user__username", "authority")
 
-    readonly_fields = ("user", "amount", "authority", "status", "created_at")
-
-
+    def amount_display(self, obj):
+        return f"{obj.amount:,} تومان"
+    amount_display.short_description = "مبلغ"
