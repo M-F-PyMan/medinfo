@@ -4,7 +4,10 @@ from courses.models import Course
 
 
 class PlatformConfig(models.Model):
-    platform_fee_percent = models.PositiveIntegerField(default=30, help_text="درصد سهم پلتفرم از هر فروش")
+    platform_fee_percent = models.PositiveIntegerField(
+        default=30,
+        help_text="درصد سهم پلتفرم از هر فروش",
+    )
 
     class Meta:
         verbose_name = "تنظیمات مالی پلتفرم"
@@ -31,9 +34,9 @@ class InstructorEarning(models.Model):
         related_name="instructor_earnings",
     )
 
-    gross_amount = models.PositiveIntegerField()   # مبلغ پرداخت‌شده (بعد از تخفیف)
-    instructor_amount = models.PositiveIntegerField()  # سهم مدرس
-    platform_amount = models.PositiveIntegerField()    # سهم پلتفرم
+    gross_amount = models.PositiveIntegerField()        # مبلغ پرداخت‌شده (بعد از تخفیف)
+    instructor_amount = models.PositiveIntegerField()   # سهم مدرس
+    platform_amount = models.PositiveIntegerField()     # سهم پلتفرم
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -64,8 +67,16 @@ class PayoutRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     processed_at = models.DateTimeField(blank=True, null=True)
 
-    # برای ثبت اطلاعات پایا/پل (مثلاً شماره پیگیری)
+    # شماره پیگیری پایا/ساتنا/کارت‌به‌کارت
     reference_code = models.CharField(max_length=100, blank=True, null=True)
+
+    # 🔥 NEW: رسید پرداخت
+    receipt = models.FileField(
+        upload_to="payout_receipts/",
+        blank=True,
+        null=True,
+        help_text="رسید پرداخت به مدرس (اختیاری)",
+    )
 
     class Meta:
         verbose_name = "درخواست تسویه"
