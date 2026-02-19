@@ -21,8 +21,6 @@ class Notification(models.Model):
     type = models.CharField(max_length=20, choices=TYPE_CHOICES, default="system")
     title = models.CharField(max_length=200)
     message = models.TextField()
-
-    # لینک اختیاری (مثلاً لینک دوره، لینک نظر، لینک صفحه پرداخت)
     target_url = models.CharField(max_length=300, null=True, blank=True)
 
     is_read = models.BooleanField(default=False)

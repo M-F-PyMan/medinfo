@@ -1,22 +1,29 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Linkedin, GraduationCap } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 
 function Footer() {
   return (
     <footer className="glass border-t border-white/10 mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 space-x-reverse mb-4">
-              <GraduationCap className="h-8 w-8 text-purple-400" />
-              <span className="text-xl font-bold text-gradient">یادینو</span>
+              <img
+                src="/images/logo/medinfo-logo.png"
+                alt="MedInfo Logo"
+                className="h-8 w-auto"
+              />
+              <span className="text-xl font-bold text-gradient">مد اینفو</span>
             </div>
+
             <p className="text-gray-400 mb-4 leading-relaxed">
-              بهترین پلتفرم آموزش آنلاین برای یادگیری مهارت‌های جدید و پیشرفت در شغل.
-              ما بیش از ۱۰۰۰ دوره متنوع در زمینه‌های مختلف تکنولوژی و کسب‌وکار ارائه می‌دهیم.
+              مد اینفو پلتفرم تخصصی آموزش پزشکی و سلامت است.
+              با ارائه دوره‌های معتبر، محتوای علمی و مسیرهای یادگیری حرفه‌ای،
+              به شما کمک می‌کنیم در مسیر رشد شغلی و علمی خود یک قدم جلوتر باشید.
             </p>
+
             <div className="flex space-x-4 space-x-reverse">
               <a href="#" className="text-gray-400 hover:text-purple-400 transition-colors">
                 <Facebook className="h-5 w-5" />
@@ -60,7 +67,7 @@ function Footer() {
 
         <div className="border-t border-white/10 mt-8 pt-8 text-center">
           <p className="text-gray-400">
-            © ۱۴۰۳ یادینو. تمامی حقوق محفوظ است.
+            © ۱۴۰۳ مد اینفو. تمامی حقوق محفوظ است.
           </p>
         </div>
       </div>

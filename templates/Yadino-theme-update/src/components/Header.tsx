@@ -1,32 +1,30 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, User, Menu, X, GraduationCap, ChevronDown } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, ChevronDown } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import NotificationSystem from './NotificationSystem';
 
 function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [dropdownTimeout, setDropdownTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [dropdownTimeout, setDropdownTimeout] = useState<number | null>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
   const { cartItems } = useCart();
   const { user, logout } = useAuth();
   const location = useLocation();
 
-  // Close dropdowns when clicking outside (only for desktop)
-  React.useEffect(() => {
+  // Close dropdown when clicking outside
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
-      // Only close user dropdown, not mobile navigation dropdowns
       if (!target.closest('.user-dropdown')) {
         setOpenDropdown(null);
       }
     };
 
     document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   const navigation = [
@@ -75,27 +73,49 @@ function Header() {
   const baseMenuItemClass =
     'inline-flex items-center justify-center px-2 py-2 h-10 rounded-md text-sm font-medium transition-all duration-200 text-center';
 
+  // -----------------------------
+  // 🔥 Dropdown Hover Logic (نسخه A)
+  // -----------------------------
+  const handleMouseEnter = (name: string) => {
+    if (dropdownTimeout) {
+      clearTimeout(dropdownTimeout);
+      setDropdownTimeout(null);
+    }
+    setOpenDropdown(name);
+  };
+
+  const handleMouseLeave = () => {
+    const timeout = window.setTimeout(() => {
+      setOpenDropdown(null);
+    }, 200);
+
+    setDropdownTimeout(timeout);
+  };
+
   return (
     <header className="glass border-b border-white/10 sticky top-0 z-50">
-      {/* Header Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Mobile Layout */}
+
+          {/* MOBILE HEADER */}
           <div className="md:hidden flex items-center justify-between w-full">
-            {/* Mobile Menu Button - Right */}
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-md hover:bg-white/10 transition-colors">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 rounded-md hover:bg-white/10 transition-colors"
+            >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
-            
-            {/* Logo Section - Center */}
+
             <Link to="/" className="flex items-center space-x-2 space-x-reverse">
-              <GraduationCap className="h-6 w-6 text-purple-400" />
-              <span className="text-lg font-bold text-gradient">یادینو</span>
+              <img
+                src="/images/logo/medinfo-logo.png"
+                alt="MedInfo Logo"
+                className="h-6 w-auto"
+              />
+              <span className="text-lg font-bold text-gradient">مد اینفو</span>
             </Link>
-            
-            {/* Cart and User - Left */}
+
             <div className="flex items-center space-x-2 space-x-reverse">
-              {/* Cart Icon */}
               <Link to="/cart" className="relative p-2 rounded-full hover:bg-white/10 transition-colors">
                 <ShoppingCart className="h-6 w-6 text-gray-300" />
                 {cartItems.length > 0 && (
@@ -104,17 +124,18 @@ function Header() {
                   </span>
                 )}
               </Link>
-              
-              {/* User Menu */}
+
               {user ? (
                 <div className="relative user-dropdown">
-                  <button 
-                    onClick={() => setOpenDropdown(openDropdown === 'user' ? null : 'user')}
+                  <button
+                    onClick={() =>
+                      setOpenDropdown(openDropdown === 'user' ? null : 'user')
+                    }
                     className="flex items-center space-x-2 space-x-reverse p-2 rounded-full hover:bg-white/10 transition-colors"
                   >
                     <User className="h-6 w-6 text-gray-300" />
                   </button>
-                  {/* User Dropdown */}
+
                   {openDropdown === 'user' && (
                     <div className="absolute left-0 mt-2 w-48 glass rounded-md shadow-lg border border-white/10 z-50">
                       <div className="py-1">
@@ -140,42 +161,27 @@ function Header() {
             </div>
           </div>
 
-          {/* Desktop Layout */}
+          {/* DESKTOP HEADER */}
           <div className="hidden md:flex items-center justify-between w-full">
-            {/* Logo Section */}
             <Link to="/" className="flex items-center space-x-2 space-x-reverse">
-              <GraduationCap className="h-8 w-8 text-purple-400" />
-              <span className="text-xl font-bold text-gradient">یادینو</span>
+              <img
+                src="/images/logo/medinfo-logo.png"
+                alt="MedInfo Logo"
+                className="h-8 w-auto"
+              />
+              <span className="text-xl font-bold text-gradient">مد اینفو</span>
             </Link>
-            {/* End Logo Section */}
 
-            {/* Navigation Menu */}
             <nav className="flex space-x-6 space-x-reverse">
               {navigation.map((item) => (
                 <div
                   key={item.name}
                   className="relative group"
-                  onMouseEnter={() => {
-                    if (item.hasDropdown) {
-                      if (dropdownTimeout) {
-                        clearTimeout(dropdownTimeout);
-                        setDropdownTimeout(null);
-                      }
-                      setOpenDropdown(item.name);
-                    }
-                  }}
-                  onMouseLeave={() => {
-                    if (item.hasDropdown) {
-                      const timeout = setTimeout(() => {
-                        setOpenDropdown(null);
-                      }, 200);
-                      setDropdownTimeout(timeout);
-                    }
-                  }}
+                  onMouseEnter={() => item.hasDropdown && handleMouseEnter(item.name)}
+                  onMouseLeave={() => item.hasDropdown && handleMouseLeave()}
                 >
                   {item.hasDropdown ? (
                     <>
-                      {/* Dropdown Button - Clickable on entire button */}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -195,7 +201,7 @@ function Header() {
                           }`}
                         />
                       </button>
-                      {/* Dropdown Menu */}
+
                       {openDropdown === item.name && (
                         <div className="absolute top-full right-0 mt-1 w-48 glass rounded-md shadow-lg border border-white/10 z-50">
                           <div className="py-1">
@@ -215,7 +221,6 @@ function Header() {
                           </div>
                         </div>
                       )}
-                      {/* End Dropdown Menu */}
                     </>
                   ) : (
                     <Link
@@ -232,11 +237,8 @@ function Header() {
                 </div>
               ))}
             </nav>
-            {/* End Navigation Menu */}
 
-            {/* Cart, User, and Mobile Menu Section */}
             <div className="flex items-center space-x-4 space-x-reverse">
-              {/* Cart Icon */}
               <Link to="/cart" className="relative p-2 rounded-full hover:bg-white/10 transition-colors">
                 <ShoppingCart className="h-6 w-6 text-gray-300" />
                 {cartItems.length > 0 && (
@@ -245,36 +247,35 @@ function Header() {
                   </span>
                 )}
               </Link>
-              {/* End Cart Icon */}
 
-              {/* User Menu */}
               {user ? (
                 <div className="relative user-dropdown">
-                  <button 
-                    onClick={() => setOpenDropdown(openDropdown === 'user-desktop' ? null : 'user-desktop')}
+                  <button
+                    onClick={() =>
+                      setOpenDropdown(openDropdown === 'user-desktop' ? null : 'user-desktop')
+                    }
                     className="flex items-center space-x-2 space-x-reverse p-2 rounded-full hover:bg-white/10 transition-colors"
                   >
                     <User className="h-6 w-6 text-gray-300" />
                     <span className="text-sm text-gray-300">{user.name}</span>
                   </button>
-                  {/* User Dropdown */}
+
                   {openDropdown === 'user-desktop' && (
                     <div className="absolute left-0 mt-2 w-48 glass rounded-md shadow-lg border border-white/10 z-50">
                       <div className="py-1">
                         <Link to="/dashboard" className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/10">داشبورد</Link>
-                        <Link to="/profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/10">پروفایل</Link>
-                        <Link to="/notifications" className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/10 flex items-center justify-between">
+                        <Link to="/profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg:white/10 hover:bg-white/10">پروفایل</Link>
+                        <Link to="/notifications" className="block px-4 py-2 text-sm text-gray-300 hover:bg:white/10 hover:bg-white/10 flex items-center justify-between">
                           <span>اعلان‌ها</span>
                           <NotificationSystem variant="inline" />
                         </Link>
                         <Link to="/wallet" className="block px-4 py-2 text-sm text-white hover:bg-white/10">کیف پول</Link>
-                        <Link to="/newsletter" className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/10">خبرنامه</Link>
-                        <Link to="/admin" className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/10">پنل مدیریت</Link>
+                        <Link to="/newsletter" className="block px-4 py-2 text-sm text-gray-300 hover:bg:white/10 hover:bg-white/10">خبرنامه</Link>
+                        <Link to="/admin" className="block px-4 py-2 text-sm text-gray-300 hover:bg:white/10 hover:bg-white/10">پنل مدیریت</Link>
                         <button onClick={logout} className="block w-full text-right px-4 py-2 text-sm text-gray-300 hover:bg-white/10">خروج</button>
                       </div>
                     </div>
                   )}
-                  {/* End User Dropdown */}
                 </div>
               ) : (
                 <div className="flex items-center space-x-2 space-x-reverse">
@@ -282,13 +283,11 @@ function Header() {
                   <Link to="/register" className="glow-button px-4 py-2 rounded-md text-sm font-medium text-white">ثبت‌نام</Link>
                 </div>
               )}
-              {/* End User Menu */}
             </div>
-            {/* End Cart, User, and Mobile Menu Section */}
           </div>
         </div>
 
-        {/* Mobile Navigation Menu */}
+        {/* MOBILE NAV MENU */}
         {isMenuOpen && (
           <div className="md:hidden relative z-50">
             <div className="px-2 pt-2 pb-3 space-y-1">
@@ -296,18 +295,20 @@ function Header() {
                 <div key={item.name}>
                   {item.hasDropdown ? (
                     <>
-                      {/* Mobile Dropdown Button */}
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setOpenDropdown(openDropdown === item.name ? null : item.name);
-                        }}
+                        onClick={() =>
+                          setOpenDropdown(openDropdown === item.name ? null : item.name)
+                        }
                         className="w-full text-right px-3 py-2 text-base font-medium text-gray-300 hover:text-purple-400 transition-colors flex justify-between items-center"
                       >
-                        <span className="text-right">{item.name}</span>
-                        <ChevronDown className={`h-4 w-4 transition-transform ${openDropdown === item.name ? 'rotate-180' : ''}`} />
+                        <span>{item.name}</span>
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform ${
+                            openDropdown === item.name ? 'rotate-180' : ''
+                          }`}
+                        />
                       </button>
-                      {/* Mobile Dropdown Menu */}
+
                       {openDropdown === item.name && (
                         <div className="pr-6 space-y-1">
                           {item.dropdownItems?.map((dropdownItem) => (
@@ -322,7 +323,6 @@ function Header() {
                           ))}
                         </div>
                       )}
-                      {/* End Mobile Dropdown Menu */}
                     </>
                   ) : (
                     <Link
@@ -339,14 +339,10 @@ function Header() {
                   )}
                 </div>
               ))}
-              
-
             </div>
           </div>
         )}
-        {/* End Mobile Navigation Menu */}
       </div>
-      {/* End Header Container */}
     </header>
   );
 }
