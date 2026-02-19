@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'messaging.apps.MessagingConfig',
     'wishlist.apps.WishlistConfig',
     'certificates.apps.CertificatesConfig',
+    'wallet.apps.WalletConfig',
 ]
 
 

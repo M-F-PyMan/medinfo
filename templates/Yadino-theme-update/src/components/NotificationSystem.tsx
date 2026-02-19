@@ -1,156 +1,159 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, X, CheckCircle, AlertCircle, Info, Star, Clock, BookOpen, Trophy, Gift, MessageCircle } from 'lucide-react';
+// @ts-ignore
+import {
+  Bell, X, CheckCircle, AlertCircle, Info, Clock, Trophy, Gift, MessageCircle
+} from 'lucide-react';
 
 interface Notification {
   id: string;
-  type: 'success' | 'warning' | 'info' | 'reminder' | 'achievement' | 'discount' | 'motivational';
+  type: string;
   title: string;
   message: string;
-  timestamp: Date;
-  isRead: boolean;
-  actionUrl?: string;
-  icon?: React.ReactNode;
+  target_url?: string;
+  is_read: boolean;
+  created_at: string;
 }
 
 interface NotificationSystemProps {
   variant?: 'dropdown' | 'inline';
 }
 
+const API_BASE = "http://127.0.0.1:8000/api"; // اگر آدرس سرورت چیز دیگه‌ایه اینو بگو
+
 const NotificationSystem: React.FC<NotificationSystemProps> = ({ variant = 'dropdown' }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  // Mock notifications data
+  const authHeaders = {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${localStorage.getItem("access") || ""}`
+  };
+
+  // -----------------------------
+  // 🔥 Fetch Notifications
+  // -----------------------------
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/notifications/`, {
+        headers: authHeaders
+      });
+
+      const data = await res.json();
+      setNotifications(data);
+      setUnreadCount(data.filter((n: Notification) => !n.is_read).length);
+    } catch (err) {
+      console.error("Error fetching notifications", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'reminder',
-        title: 'یادآوری کلاس',
-        message: 'کلاس React.js شما در 30 دقیقه دیگر شروع می‌شود',
-        timestamp: new Date(Date.now() - 1000 * 60 * 30),
-        isRead: false,
-        actionUrl: '/courses/react-js',
-        icon: <Clock className="h-5 w-5 text-blue-400" />
-      },
-      {
-        id: '2',
-        type: 'achievement',
-        title: 'دستاورد جدید!',
-        message: 'تبریک! شما 10 درس را با موفقیت تکمیل کردید',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-        isRead: false,
-        actionUrl: '/gamification',
-        icon: <Trophy className="h-5 w-5 text-yellow-400" />
-      },
-      {
-        id: '3',
-        type: 'discount',
-        title: 'تخفیف ویژه!',
-        message: '50% تخفیف روی تمام دوره‌های JavaScript تا پایان هفته',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4),
-        isRead: false,
-        actionUrl: '/courses',
-        icon: <Gift className="h-5 w-5 text-red-400" />
-      },
-      {
-        id: '4',
-        type: 'motivational',
-        title: 'پیام انگیزشی',
-        message: 'امروز روز خوبی برای یادگیری است! ادامه دهید',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6),
-        isRead: true,
-        icon: <Star className="h-5 w-5 text-purple-400" />
-      },
-      {
-        id: '5',
-        type: 'success',
-        title: 'تکمیل دوره',
-        message: 'دوره HTML & CSS شما با موفقیت تکمیل شد',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 8),
-        isRead: true,
-        actionUrl: '/dashboard',
-        icon: <CheckCircle className="h-5 w-5 text-green-400" />
-      },
-      {
-        id: '6',
-        type: 'info',
-        title: 'به‌روزرسانی سیستم',
-        message: 'سیستم یادگیری هوشمند جدید اضافه شد',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12),
-        isRead: true,
-        icon: <Info className="h-5 w-5 text-blue-400" />
-      }
-    ];
-
-    setNotifications(mockNotifications);
-    setUnreadCount(mockNotifications.filter(n => !n.isRead).length);
+    fetchNotifications();
   }, []);
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id 
-          ? { ...notification, isRead: true }
-          : notification
-      )
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
+  // -----------------------------
+  // 🔥 Mark as Read
+  // -----------------------------
+  const markAsRead = async (id: string) => {
+    try {
+      await fetch(`${API_BASE}/notifications/${id}/read/`, {
+        method: "POST",
+        headers: authHeaders
+      });
+
+      setNotifications(prev =>
+        prev.map(n => n.id === id ? { ...n, is_read: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error("Error marking as read", err);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, isRead: true }))
-    );
-    setUnreadCount(0);
+  // -----------------------------
+  // 🔥 Mark All as Read
+  // -----------------------------
+  const markAllAsRead = async () => {
+    try {
+      await fetch(`${API_BASE}/notifications/read_all/`, {
+        method: "POST",
+        headers: authHeaders
+      });
+
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Error marking all as read", err);
+    }
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-    setUnreadCount(prev => {
-      const notification = notifications.find(n => n.id === id);
-      return notification && !notification.isRead ? Math.max(0, prev - 1) : prev;
-    });
+  // -----------------------------
+  // 🔥 Delete Notification
+  // -----------------------------
+  const deleteNotification = async (id: string) => {
+    try {
+      await fetch(`${API_BASE}/notifications/${id}/delete/`, {
+        method: "DELETE",
+        headers: authHeaders
+      });
+
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      setUnreadCount(prev => {
+        const notif = notifications.find(n => n.id === id);
+        return notif && !notif.is_read ? Math.max(0, prev - 1) : prev;
+      });
+    } catch (err) {
+      console.error("Error deleting notification", err);
+    }
   };
 
+  // -----------------------------
+  // 🔥 Icons based on backend types
+  // -----------------------------
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'success':
+      case 'system':
+        return <Info className="h-5 w-5 text-blue-400" />;
+      case 'payment':
         return <CheckCircle className="h-5 w-5 text-green-400" />;
+      case 'coupon':
+        return <Gift className="h-5 w-5 text-red-400" />;
+      case 'comment':
+        return <MessageCircle className="h-5 w-5 text-purple-400" />;
       case 'warning':
         return <AlertCircle className="h-5 w-5 text-yellow-400" />;
-      case 'info':
-        return <Info className="h-5 w-5 text-blue-400" />;
-      case 'reminder':
-        return <Clock className="h-5 w-5 text-blue-400" />;
-      case 'achievement':
+      case 'course':
         return <Trophy className="h-5 w-5 text-yellow-400" />;
-      case 'discount':
-        return <Gift className="h-5 w-5 text-red-400" />;
-      case 'motivational':
-        return <Star className="h-5 w-5 text-purple-400" />;
       default:
         return <Bell className="h-5 w-5 text-gray-400" />;
     }
   };
 
-  const formatTimeAgo = (date: Date) => {
+  // -----------------------------
+  // 🔥 Time formatter
+  // -----------------------------
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
+
     if (diffInMinutes < 1) return 'همین الان';
     if (diffInMinutes < 60) return `${diffInMinutes} دقیقه پیش`;
-    
+
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `${diffInHours} ساعت پیش`;
-    
+
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays} روز پیش`;
   };
 
-  // Inline variant for user dropdown
+  // -----------------------------
+  // 🔥 Inline Variant (Header)
+  // -----------------------------
   if (variant === 'inline') {
     return (
       <div className="flex items-center">
@@ -164,9 +167,12 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({ variant = 'drop
     );
   }
 
+  // -----------------------------
+  // 🔥 Dropdown Variant
+  // -----------------------------
   return (
     <div className="relative">
-      {/* Notification Bell */}
+      {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 rounded-full hover:bg-white/10 transition-colors"
@@ -179,7 +185,7 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({ variant = 'drop
         )}
       </button>
 
-      {/* Notification Dropdown */}
+      {/* Dropdown */}
       {isOpen && (
         <div className="absolute left-0 mt-2 w-80 glass rounded-lg shadow-xl border border-white/10 z-50">
           {/* Header */}
@@ -203,76 +209,63 @@ const NotificationSystem: React.FC<NotificationSystemProps> = ({ variant = 'drop
             </div>
           </div>
 
-          {/* Notifications List */}
-          <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
+          {/* List */}
+          <div className="max-h-96 overflow-y-auto p-2">
+            {loading ? (
+              <div className="p-4 text-center text-gray-400">در حال بارگذاری...</div>
+            ) : notifications.length === 0 ? (
               <div className="p-4 text-center text-gray-400">
                 <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>هیچ اعلانی ندارید</p>
               </div>
             ) : (
-              <div className="p-2">
-                {notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className={`relative p-3 rounded-lg mb-2 transition-all ${
-                      notification.isRead 
-                        ? 'bg-white/5 hover:bg-white/10' 
-                        : 'bg-purple-500/10 border border-purple-500/20'
-                    }`}
-                  >
-                    {/* Unread Indicator */}
-                    {!notification.isRead && (
-                      <div className="absolute top-3 right-3 w-2 h-2 bg-purple-400 rounded-full"></div>
-                    )}
+              notifications.map((n) => (
+                <div
+                  key={n.id}
+                  className={`relative p-3 rounded-lg mb-2 transition-all ${
+                    n.is_read
+                      ? 'bg-white/5 hover:bg-white/10'
+                      : 'bg-purple-500/10 border border-purple-500/20'
+                  }`}
+                >
+                  {!n.is_read && (
+                    <div className="absolute top-3 right-3 w-2 h-2 bg-purple-400 rounded-full"></div>
+                  )}
 
-                    {/* Notification Content */}
-                    <div className="flex items-start space-x-3 space-x-reverse">
-                      <div className="flex-shrink-0 mt-1">
-                        {notification.icon || getNotificationIcon(notification.type)}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className={`text-sm font-medium ${
-                              notification.isRead ? 'text-gray-300' : 'text-white'
-                            }`}>
-                              {notification.title}
-                            </h4>
-                            <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                              {notification.message}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-2">
-                              {formatTimeAgo(notification.timestamp)}
-                            </p>
-                          </div>
-                          
-                          {/* Action Buttons */}
-                          <div className="flex items-center space-x-1 space-x-reverse ml-2">
-                            {!notification.isRead && (
-                              <button
-                                onClick={() => markAsRead(notification.id)}
-                                className="p-1 rounded-full hover:bg-white/10 transition-colors"
-                                title="علامت‌گذاری به عنوان خوانده شده"
-                              >
-                                <CheckCircle className="h-3 w-3 text-gray-400" />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => deleteNotification(notification.id)}
-                              className="p-1 rounded-full hover:bg-red-500/20 transition-colors"
-                              title="حذف"
-                            >
-                              <X className="h-3 w-3 text-gray-400 hover:text-red-400" />
-                            </button>
-                          </div>
-                        </div>
+                  <div className="flex items-start space-x-3 space-x-reverse">
+                    <div className="flex-shrink-0 mt-1">
+                      {getNotificationIcon(n.type)}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <h4 className={`text-sm font-medium ${n.is_read ? 'text-gray-300' : 'text-white'}`}>
+                        {n.title}
+                      </h4>
+                      <p className="text-xs text-gray-400 mt-1 leading-relaxed">{n.message}</p>
+                      <p className="text-xs text-gray-500 mt-2">{formatTimeAgo(n.created_at)}</p>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center space-x-1 space-x-reverse mt-2">
+                        {!n.is_read && (
+                          <button
+                            onClick={() => markAsRead(n.id)}
+                            className="p-1 rounded-full hover:bg-white/10 transition-colors"
+                          >
+                            <CheckCircle className="h-3 w-3 text-gray-400" />
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => deleteNotification(n.id)}
+                          className="p-1 rounded-full hover:bg-red-500/20 transition-colors"
+                        >
+                          <X className="h-3 w-3 text-gray-400 hover:text-red-400" />
+                        </button>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))
             )}
           </div>
 

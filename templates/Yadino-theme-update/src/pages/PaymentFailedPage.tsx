@@ -5,9 +5,10 @@ import { XCircle, RefreshCw, ArrowLeft, CreditCard, Phone } from 'lucide-react';
 function PaymentFailedPage() {
   const navigate = useNavigate();
 
-  const handleRetryPayment = () => {
-    navigate('/checkout');
-  };
+const handleRetryPayment = () => {
+  navigate('/cart');
+};
+
 
   const commonIssues = [
     {

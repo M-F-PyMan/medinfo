@@ -18,6 +18,7 @@ urlpatterns = [
     path('api/messaging/', include('messaging.urls')),
     path('api/wishlist/', include('wishlist.urls')),
     path('api/certificates/', include('certificates.urls')),
+    path('api/wallet/', include('wallet.urls')),
 # Public HTML pages
     path('', include('certificates.public_urls')),
 ]

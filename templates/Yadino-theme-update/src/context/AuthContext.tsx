@@ -1,84 +1,166 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface User {
   id: string;
-  name: string;
+  username: string;
   email: string;
-  phone: string;
-  avatar?: string;
-  purchasedCourses: string[];
+  name: string;
+  is_teacher: boolean;
+  is_staff: boolean;
+  date_joined: string;
+  profile?: any;
+  enrollments?: any[];
+  instructor_courses?: any[];
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (phone: string) => Promise<boolean>;
-  register: (phone: string) => Promise<boolean>;
-  logout: () => void;
   isAuthenticated: boolean;
+  loading: boolean;
+  login: (username: string, password: string) => Promise<boolean>;
+  register: (data: RegisterData) => Promise<boolean>;
+  logout: () => Promise<void>;
+}
+
+interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+  name?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const API_BASE = "http://127.0.0.1:8000/api"; // اگر آدرس سرورت چیز دیگری است، اینجا تغییر بده
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = async (phone: string): Promise<boolean> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock successful login
-    if (phone) {
-      setUser({
-        id: '1',
-        name: 'کاربر جدید',
-        email: 'user@example.com',
-        phone: phone,
-        purchasedCourses: ['1', '3']
-      });
-      return true;
+  const authHeaders = () => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("access") || ""}`,
+  });
+
+  // -----------------------------
+  // 🔥 Auto Login (me)
+  // -----------------------------
+  const fetchMe = async () => {
+    const access = localStorage.getItem("access");
+    if (!access) {
+      setLoading(false);
+      return;
     }
-    return false;
+
+    try {
+      const res = await fetch(`${API_BASE}/auth/me/`, {
+        headers: authHeaders(),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      } else {
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+      }
+    } catch (err) {
+      console.error("Error fetching user:", err);
+    }
+
+    setLoading(false);
   };
 
-  const register = async (phone: string): Promise<boolean> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock successful registration
-    if (phone) {
-      setUser({
-        id: '1',
-        name: 'کاربر جدید',
-        email: 'user@example.com',
-        phone: phone,
-        purchasedCourses: []
+  useEffect(() => {
+    fetchMe();
+  }, []);
+
+  // -----------------------------
+  // 🔥 Login
+  // -----------------------------
+  const login = async (username: string, password: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/login/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
       });
+
+      if (!res.ok) return false;
+
+      const data = await res.json();
+
+      localStorage.setItem("access", data.access);
+      localStorage.setItem("refresh", data.refresh);
+
+      setUser(data.user);
       return true;
+    } catch (err) {
+      console.error("Login error:", err);
+      return false;
     }
-    return false;
   };
 
-  const logout = () => {
+  // -----------------------------
+  // 🔥 Register
+  // -----------------------------
+  const register = async (data: RegisterData): Promise<boolean> => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/register/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) return false;
+
+      // ثبت‌نام موفق → اما توکن نمی‌دهد → باید login کنیم
+      return true;
+    } catch (err) {
+      console.error("Register error:", err);
+      return false;
+    }
+  };
+
+  // -----------------------------
+  // 🔥 Logout
+  // -----------------------------
+  const logout = async () => {
+    try {
+      const refresh = localStorage.getItem("refresh");
+
+      await fetch(`${API_BASE}/auth/logout/`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ refresh }),
+      });
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      login,
-      register,
-      logout,
-      isAuthenticated: !!user
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        loading,
+        login,
+        register,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
 }
