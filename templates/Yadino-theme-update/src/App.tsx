@@ -32,7 +32,7 @@ import ProfilePage from './pages/ProfilePage';
 import InstructorsPage from './pages/InstructorsPage';
 import InstructorProfilePage from './pages/InstructorProfilePage';
 import WalletPage from './pages/WalletPage';
-import AdminPage from './pages/AdminPage';
+import AdminPage from './admin/AdminPage.tsx';
 import SpecialSalePage1 from './pages/SpecialSalePage1';
 import SpecialSalePage2 from './pages/SpecialSalePage2';
 import NewsletterPage from './pages/NewsletterPage';

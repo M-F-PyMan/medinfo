@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Payment, Cart
+from .models import Transaction, Cart
 from accounts.serializers import UserSerializer
 from courses.serializers import CourseListSerializer
 
@@ -9,7 +9,7 @@ class PaymentAdminSerializer(serializers.ModelSerializer):
     course = CourseListSerializer(read_only=True)
 
     class Meta:
-        model = Payment
+        model = Transaction
         fields = [
             "id",
             "user",
