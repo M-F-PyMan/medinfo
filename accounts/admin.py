@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from .models import User, Profile, InstructorProfile, Enrollment, TeacherApplication
+from .models import User, Profile, InstructorProfile, Enrollment, TeacherApplication,JobOpening
 
 @admin.register(TeacherApplication)
 class TeacherApplicationAdmin(admin.ModelAdmin):
@@ -71,6 +71,15 @@ class EnrollmentAdmin(admin.ModelAdmin):
     list_filter = ("created_at", "course")
     search_fields = ("user__username", "course__title")
     readonly_fields = ("created_at",)
+
+
+
+@admin.register(JobOpening)
+class JobOpeningAdmin(admin.ModelAdmin):
+    list_display = ("id", "title", "field", "location", "created_at")
+    search_fields = ("title", "field", "location")
+    list_filter = ("field", "location", "created_at")
+    ordering = ("-created_at",)
 
 
 admin.site.register(User, UserAdmin)
