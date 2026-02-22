@@ -1,6 +1,67 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
+from django.conf import settings
+
+
+class TeacherApplication(models.Model):
+    STATUS_CHOICES = [
+        ("pending", "در انتظار بررسی"),
+        ("accepted", "تأیید شده"),
+        ("rejected", "رد شده"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="teacher_applications",
+    )
+
+    specialty = models.CharField(max_length=200, blank=True, null=True)
+    experience = models.CharField(max_length=50, blank=True, null=True)
+
+    national_card_front = models.ImageField(
+        upload_to="teacher_docs/national_card/", blank=True, null=True
+    )
+    national_card_back = models.ImageField(
+        upload_to="teacher_docs/national_card/", blank=True, null=True
+    )
+    medical_card_front = models.ImageField(
+        upload_to="teacher_docs/medical_card/", blank=True, null=True
+    )
+    medical_card_back = models.ImageField(
+        upload_to="teacher_docs/medical_card/", blank=True, null=True
+    )
+    resume_file = models.FileField(
+        upload_to="teacher_docs/resume/", blank=True, null=True
+    )
+
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="pending"
+    )
+    admin_note = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(default=timezone.now)
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"TeacherApplication({self.user.username} - {self.status})"
+
+
+class JobOpening(models.Model):
+    title = models.CharField(max_length=200)
+    field = models.CharField(max_length=200)  # رشته تدریس
+    type = models.CharField(max_length=100, default="مدرس")
+    location = models.CharField(max_length=200, default="دورکاری")
+    description = models.TextField()
+
+    requirements = models.JSONField(default=list)
+    benefits = models.JSONField(default=list)
+
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.title
 
 
 class UserManager(BaseUserManager):

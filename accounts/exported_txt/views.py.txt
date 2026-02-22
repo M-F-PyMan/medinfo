@@ -1,18 +1,58 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
-
+from django.db.models import Avg, Count
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
     MeSerializer,
     UserSerializer,
+    InstructorPublicSerializer,
+    TeacherApplicationSerializer,
 )
-from .models import User, Enrollment
+from .models import User, Enrollment, TeacherApplication, InstructorProfile
 from courses.serializers import CourseListSerializer
+from notifications.utils import create_notification
+from django.utils import timezone
+
+class TeacherApplicationViewSet(viewsets.ModelViewSet):
+    """
+    این ViewSet برای خود کاربر است:
+    - ارسال درخواست جدید
+    - مشاهده لیست درخواست‌های خودش
+    - مشاهده جزئیات درخواست خودش
+    """
+    serializer_class = TeacherApplicationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return TeacherApplication.objects.filter(user=self.request.user).order_by("-created_at")
+
+    def perform_create(self, serializer):
+        # اگر کاربر قبلاً مدرس است، اجازه ثبت درخواست جدید نده
+        if self.request.user.is_teacher:
+            raise serializers.ValidationError("شما هم‌اکنون به عنوان مدرس فعال هستید.")
+
+        # اگر درخواست در انتظار دارد، اجازه ثبت درخواست جدید نده
+        if TeacherApplication.objects.filter(user=self.request.user, status="pending").exists():
+            raise serializers.ValidationError("شما یک درخواست در حال بررسی دارید.")
+
+        app = serializer.save(user=self.request.user)
+
+        # نوتیفیکیشن برای کاربر
+        create_notification(
+            user=self.request.user,
+            type_="system",
+            title="ثبت درخواست مدرس شدن",
+            message="درخواست شما برای تبدیل شدن به مدرس ثبت شد و در حال بررسی است.",
+            target_url="/profile",
+        )
+
+        # (اختیاری) نوتیفیکیشن برای ادمین‌ها اگر خواستی بعداً اضافه می‌کنیم
+        return app
 
 
 class MyCoursesView(APIView):
@@ -67,3 +107,28 @@ class AuthViewSet(viewsets.ViewSet):
             pass
 
         return Response({"message": "خروج انجام شد"})
+
+
+class InstructorPublicViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.filter(is_teacher=True).select_related(
+        "profile", "instructor_profile"
+    )
+    serializer_class = InstructorPublicSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        qs = self.queryset
+
+        # مرتب‌سازی
+        ordering = self.request.GET.get("ordering")
+        if ordering == "rating":
+            qs = qs.annotate(avg_rating=Avg("teacher_courses__ratings__value")).order_by("-avg_rating")
+        elif ordering == "students":
+            qs = qs.annotate(st_count=Count("teacher_courses__enrollments")).order_by("-st_count")
+
+        # محدودیت تعداد
+        limit = self.request.GET.get("limit")
+        if limit:
+            qs = qs[: int(limit)]
+
+        return qs

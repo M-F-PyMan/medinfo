@@ -1,7 +1,6 @@
 from .models import Notification
 
 
-
 def create_notification(user, type_, title, message, target_url=None):
     if not user:
         return
@@ -12,4 +11,3 @@ def create_notification(user, type_, title, message, target_url=None):
         message=message,
         target_url=target_url,
     )
-

@@ -21,6 +21,8 @@ urlpatterns = [
     path('api/wishlist/', include('wishlist.urls')),
     path('api/certificates/', include('certificates.urls')),
     path('api/wallet/', include('wallet.urls')),
+    path('api/blog/', include('blog.urls')),
+    #path('api/core_settings/', include('core_settings.urls')),
 
     # -------------------------
     # API ADMIN (React Admin Panel)
@@ -36,6 +38,8 @@ urlpatterns = [
     path('api/', include('wishlist.urls_admin')),
     path('api/', include('certificates.urls_admin')),
     path('api/', include('wallet.urls_admin')),
+    path('api/', include('blog.urls_admin')),
+    path('api/', include('core_settings.urls_admin')),
 
     # Public HTML pages
     path('', include('certificates.public_urls')),

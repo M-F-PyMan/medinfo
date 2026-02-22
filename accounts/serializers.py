@@ -1,6 +1,20 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import User, Profile, InstructorProfile, Enrollment
+from .models import (
+    User,
+    Profile,
+    InstructorProfile,
+    Enrollment,
+    TeacherApplication,
+    JobOpening,
+)
+
+from django.db.models import Avg, Count
+
+
+
+
+
 
 
 # -------------------------
@@ -23,6 +37,7 @@ class UserSerializer(serializers.ModelSerializer):
 # -------------------------
 # INSTRUCTOR PROFILE (Admin)
 # -------------------------
+
 class InstructorProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)  # بهتر از StringRelatedField برای ادمین
 
@@ -39,7 +54,49 @@ class InstructorProfileSerializer(serializers.ModelSerializer):
             "card_number",
         ]
 
+# -------------------------------------------------
+# TEACHER APPLICATIONS SERIALIZERS(Admin & Public)
+# -------------------------------------------------
+class TeacherApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TeacherApplication
+        fields = [
+            "id",
+            "specialty",
+            "experience",
+            "national_card_front",
+            "national_card_back",
+            "medical_card_front",
+            "medical_card_back",
+            "resume_file",
+            "status",
+            "admin_note",
+            "created_at",
+            "reviewed_at",
+        ]
+        read_only_fields = ["status", "admin_note", "created_at", "reviewed_at"]
 
+
+class TeacherApplicationAdminSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = TeacherApplication
+        fields = [
+            "id",
+            "user",
+            "specialty",
+            "experience",
+            "national_card_front",
+            "national_card_back",
+            "medical_card_front",
+            "medical_card_back",
+            "resume_file",
+            "status",
+            "admin_note",
+            "created_at",
+            "reviewed_at",
+        ]
 # -------------------------
 # PROFILE (Admin + User)
 # -------------------------
@@ -149,3 +206,45 @@ class MeSerializer(serializers.ModelSerializer):
             }
             for c in courses
         ]
+
+class InstructorPublicSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer(read_only=True)
+    instructor_profile = InstructorProfileSerializer(read_only=True)
+
+    students = serializers.SerializerMethodField()
+    courses = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "name",
+            "username",
+            "profile",
+            "instructor_profile",
+            "students",
+            "courses",
+            "rating",
+        ]
+
+    def get_students(self, obj):
+        return Enrollment.objects.filter(course__teacher=obj).values("user").distinct().count()
+
+    def get_courses(self, obj):
+        return obj.teacher_courses.count()
+
+    def get_rating(self, obj):
+        avg = obj.teacher_courses.aggregate(a=Avg("ratings__value"))["a"]
+        return round(avg or 0, 1)
+
+
+class JobOpeningSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobOpening
+        fields = "__all__"
+
+class JobOpeningAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobOpening
+        fields = "__all__"

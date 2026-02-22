@@ -1,9 +1,16 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import AuthViewSet, MyCoursesView
+from .views import( AuthViewSet,
+                    MyCoursesView,
+                    InstructorPublicViewSet,
+                    TeacherApplicationViewSet,
+                    JobOpeningViewSet,)
 
 router = DefaultRouter()
 router.register("auth", AuthViewSet, basename="auth")
+router.register("instructors", InstructorPublicViewSet, basename="instructors")
+router.register("teacher-applications", TeacherApplicationViewSet, basename="teacher-applications")
+router.register("careers", JobOpeningViewSet, basename="careers")
 
 urlpatterns = [
     path("me/courses/", MyCoursesView.as_view(), name="my-courses"),

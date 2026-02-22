@@ -1,9 +1,14 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from .models import User, Profile, InstructorProfile, Enrollment, TeacherApplication
 
-from .models import User, Profile, InstructorProfile, Enrollment
-
+@admin.register(TeacherApplication)
+class TeacherApplicationAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "status", "created_at", "reviewed_at")
+    list_filter = ("status", "created_at")
+    search_fields = ("user__username", "user__email")
+    readonly_fields = ("created_at", "reviewed_at")
 
 class ProfileInline(admin.StackedInline):
     model = Profile

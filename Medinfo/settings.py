@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     'wishlist.apps.WishlistConfig',
     'certificates.apps.CertificatesConfig',
     'wallet.apps.WalletConfig',
+    'blog.apps.BlogConfig',
+    'core_settings.apps.CoreSettingsConfig',
+
 ]
 
 

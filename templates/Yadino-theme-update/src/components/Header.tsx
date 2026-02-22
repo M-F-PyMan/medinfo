@@ -6,11 +6,11 @@ import { useAuth } from '../context/AuthContext';
 import NotificationSystem from './NotificationSystem';
 
 function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [dropdownTimeout, setDropdownTimeout] = useState<number | null>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
-  const { cartItems } = useCart();
+  const { cart } = useCart();
   const { user, logout } = useAuth();
   const location = useLocation();
 
@@ -28,16 +28,7 @@ function Header() {
   }, []);
 
   const navigation = [
-    {
-      name: 'خانه',
-      href: '/',
-      hasDropdown: true,
-      dropdownItems: [
-        { name: 'خانه ۱', href: '/' },
-        { name: 'خانه ۲', href: '/home2' },
-        { name: 'خانه ۳', href: '/home3' },
-      ],
-    },
+    { name: 'خانه', href: '/', hasDropdown: false, dropdownItems: [] },
     {
       name: 'فروش ‌ویژه',
       href: '#',
@@ -73,9 +64,7 @@ function Header() {
   const baseMenuItemClass =
     'inline-flex items-center justify-center px-2 py-2 h-10 rounded-md text-sm font-medium transition-all duration-200 text-center';
 
-  // -----------------------------
-  // 🔥 Dropdown Hover Logic (نسخه A)
-  // -----------------------------
+  // Dropdown Hover Logic
   const handleMouseEnter = (name: string) => {
     if (dropdownTimeout) {
       clearTimeout(dropdownTimeout);
@@ -88,7 +77,6 @@ function Header() {
     const timeout = window.setTimeout(() => {
       setOpenDropdown(null);
     }, 200);
-
     setDropdownTimeout(timeout);
   };
 
@@ -107,20 +95,16 @@ function Header() {
             </button>
 
             <Link to="/" className="flex items-center space-x-2 space-x-reverse">
-              <img
-                src="/images/logo/medinfo-logo.png"
-                alt="MedInfo Logo"
-                className="h-6 w-auto"
-              />
+              <img src="/images/logo/medinfo-logo.png" alt="MedInfo Logo" className="h-6 w-auto" />
               <span className="text-lg font-bold text-gradient">مد اینفو</span>
             </Link>
 
             <div className="flex items-center space-x-2 space-x-reverse">
               <Link to="/cart" className="relative p-2 rounded-full hover:bg-white/10 transition-colors">
                 <ShoppingCart className="h-6 w-6 text-gray-300" />
-                {cartItems.length > 0 && (
+                {cart?.items?.length > 0 && (
                   <span className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartItems.length}
+                    {cart.items.length}
                   </span>
                 )}
               </Link>
@@ -128,10 +112,8 @@ function Header() {
               {user ? (
                 <div className="relative user-dropdown">
                   <button
-                    onClick={() =>
-                      setOpenDropdown(openDropdown === 'user' ? null : 'user')
-                    }
-                    className="flex items-center space-x-2 space-x-reverse p-2 rounded-full hover:bg-white/10 transition-colors"
+                    onClick={() => setOpenDropdown(openDropdown === 'user' ? null : 'user')}
+                    className="p-2 rounded-full hover:bg-white/10 transition-colors"
                   >
                     <User className="h-6 w-6 text-gray-300" />
                   </button>
@@ -164,11 +146,7 @@ function Header() {
           {/* DESKTOP HEADER */}
           <div className="hidden md:flex items-center justify-between w-full">
             <Link to="/" className="flex items-center space-x-2 space-x-reverse">
-              <img
-                src="/images/logo/medinfo-logo.png"
-                alt="MedInfo Logo"
-                className="h-8 w-auto"
-              />
+              <img src="/images/logo/medinfo-logo.png" alt="MedInfo Logo" className="h-8 w-auto" />
               <span className="text-xl font-bold text-gradient">مد اینفو</span>
             </Link>
 
@@ -238,12 +216,17 @@ function Header() {
               ))}
             </nav>
 
+            {/* CART + USER (DESKTOP) */}
             <div className="flex items-center space-x-4 space-x-reverse">
-              <Link to="/cart" className="relative p-2 rounded-full hover:bg-white/10 transition-colors">
+              <Link
+                to="/cart"
+                className="relative p-2 rounded-full hover:bg-white/10 transition-colors"
+              >
                 <ShoppingCart className="h-6 w-6 text-gray-300" />
-                {cartItems.length > 0 && (
+
+                {cart?.items?.length > 0 && (
                   <span className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartItems.length}
+                    {cart.items.length}
                   </span>
                 )}
               </Link>
@@ -264,15 +247,15 @@ function Header() {
                     <div className="absolute left-0 mt-2 w-48 glass rounded-md shadow-lg border border-white/10 z-50">
                       <div className="py-1">
                         <Link to="/dashboard" className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/10">داشبورد</Link>
-                        <Link to="/profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg:white/10 hover:bg-white/10">پروفایل</Link>
-                        <Link to="/notifications" className="block px-4 py-2 text-sm text-gray-300 hover:bg:white/10 hover:bg-white/10 flex items-center justify-between">
+                        <Link to="/profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg:white/10">پروفایل</Link>
+                        <Link to="/notifications" className="block px-4 py-2 text-sm text-gray-300 hover:bg:white/10 flex items-center justify-between">
                           <span>اعلان‌ها</span>
                           <NotificationSystem variant="inline" />
                         </Link>
-                        <Link to="/wallet" className="block px-4 py-2 text-sm text-white hover:bg-white/10">کیف پول</Link>
-                        <Link to="/newsletter" className="block px-4 py-2 text-sm text-gray-300 hover:bg:white/10 hover:bg-white/10">خبرنامه</Link>
-                        <Link to="/admin" className="block px-4 py-2 text-sm text-gray-300 hover:bg:white/10 hover:bg-white/10">پنل مدیریت</Link>
-                        <button onClick={logout} className="block w-full text-right px-4 py-2 text-sm text-gray-300 hover:bg-white/10">خروج</button>
+                        <Link to="/wallet" className="block px-4 py-2 text-sm text-white hover:bg:white/10">کیف پول</Link>
+                        <Link to="/newsletter" className="block px-4 py-2 text-sm text-gray-300 hover:bg:white/10">خبرنامه</Link>
+                        <Link to="/admin" className="block px-4 py-2 text-sm text-gray-300 hover:bg:white/10">پنل مدیریت</Link>
+                        <button onClick={logout} className="block w-full text-right px-4 py-2 text-sm text-gray-300 hover:bg:white/10">خروج</button>
                       </div>
                     </div>
                   )}
@@ -285,63 +268,64 @@ function Header() {
               )}
             </div>
           </div>
-        </div>
 
-        {/* MOBILE NAV MENU */}
-        {isMenuOpen && (
-          <div className="md:hidden relative z-50">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              {navigation.map((item) => (
-                <div key={item.name}>
-                  {item.hasDropdown ? (
-                    <>
-                      <button
-                        onClick={() =>
-                          setOpenDropdown(openDropdown === item.name ? null : item.name)
-                        }
-                        className="w-full text-right px-3 py-2 text-base font-medium text-gray-300 hover:text-purple-400 transition-colors flex justify-between items-center"
+          {/* MOBILE NAV MENU */}
+          {isMenuOpen && (
+            <div className="md:hidden relative z-50">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                {navigation.map((item) => (
+                  <div key={item.name}>
+                    {item.hasDropdown ? (
+                      <>
+                        <button
+                          onClick={() =>
+                            setOpenDropdown(openDropdown === item.name ? null : item.name)
+                          }
+                          className="w-full text-right px-3 py-2 text-base font-medium text-gray-300 hover:text-purple-400 transition-colors flex justify-between items-center"
+                        >
+                          <span>{item.name}</span>
+                          <ChevronDown
+                            className={`h-4 w-4 transition-transform ${
+                              openDropdown === item.name ? 'rotate-180' : ''
+                            }`}
+                          />
+                        </button>
+
+                        {openDropdown === item.name && (
+                          <div className="pr-6 space-y-1">
+                            {item.dropdownItems?.map((dropdownItem) => (
+                              <Link
+                                key={dropdownItem.name}
+                                to={dropdownItem.href}
+                                className="block py-2 px-3 rounded-md text-sm text-gray-300 hover:text-purple-400 hover:bg-purple-400/5 transition-colors text-right"
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                {dropdownItem.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <Link
+                        to={item.href}
+                        className={`block px-3 py-2 rounded-md text-base font-medium transition-colors text-right ${
+                          isActive(item.href)
+                            ? 'text-purple-400 bg-purple-400/10'
+                            : 'text-gray-300 hover:text-purple-400 hover:bg-purple-400/5'
+                        }`}
+                        onClick={() => setIsMenuOpen(false)}
                       >
-                        <span>{item.name}</span>
-                        <ChevronDown
-                          className={`h-4 w-4 transition-transform ${
-                            openDropdown === item.name ? 'rotate-180' : ''
-                          }`}
-                        />
-                      </button>
-
-                      {openDropdown === item.name && (
-                        <div className="pr-6 space-y-1">
-                          {item.dropdownItems?.map((dropdownItem) => (
-                            <Link
-                              key={dropdownItem.name}
-                              to={dropdownItem.href}
-                              className="block py-2 px-3 rounded-md text-sm text-gray-300 hover:text-purple-400 hover:bg-purple-400/5 transition-colors text-right"
-                              onClick={() => setIsMenuOpen(false)}
-                            >
-                              {dropdownItem.name}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <Link
-                      to={item.href}
-                      className={`block px-3 py-2 rounded-md text-base font-medium transition-colors text-right ${
-                        isActive(item.href)
-                          ? 'text-purple-400 bg-purple-400/10'
-                          : 'text-gray-300 hover:text-purple-400 hover:bg-purple-400/5'
-                      }`}
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {item.name}
-                    </Link>
-                  )}
-                </div>
-              ))}
+                        {item.name}
+                      </Link>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+        </div>
       </div>
     </header>
   );

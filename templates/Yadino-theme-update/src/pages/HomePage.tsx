@@ -1,368 +1,370 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Play, Star, Users, BookOpen, Award, ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  Star,
+  Users,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  ArrowLeft,
+} from "lucide-react";
+
+// -----------------------------
+// Types (TS Strict Mode)
+// -----------------------------
+interface Course {
+  id: number;
+  title: string;
+  slug: string;
+  preview_image: string | null;
+  price: number;
+  sale_price: number | null;
+  teacher_name: string;
+  lessons_count: number;
+  average_rating: number;
+  comments_count: number;
+}
+
+interface InstructorProfile {
+  experience: number | null;
+  degree: string | null;
+}
+
+interface Profile {
+  image: string | null;
+  bio: string | null;
+  specialty: string | null;
+}
+
+interface Instructor {
+  id: number;
+  name: string;
+  username: string;
+  profile: Profile;
+  instructor_profile: InstructorProfile;
+  students: number;
+  courses: number;
+  rating: number;
+}
+
+interface HomeApiResponse {
+  newest: Course[];
+  best_sellers: Course[];
+  top_rated: Course[];
+  categories: string[];
+}
+
+// -----------------------------
+// API Base URL
+// -----------------------------
+const BASE_URL = "http://127.0.0.1:8000/api/";
 
 function HomePage() {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  // -----------------------------
+  // States
+  // -----------------------------
+  const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Slider states
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  // -----------------------------
+  // Slider Data
+  // -----------------------------
   const sliderData = [
     {
       id: 1,
-      title: 'یادگیری تعاملی',
-      subtitle: 'تجربه آموزشی متفاوت',
-      description: 'با استفاده از تکنولوژی‌های نوین، یادگیری را به تجربه‌ای لذت‌بخش تبدیل کرده‌ایم',
-      image: './images/pexels-photo-5212345.jpeg',
-      gradient: 'from-purple-600/80 to-blue-600/80',
-      stats: { students: '۱۵,۰۰۰+', courses: '۸۰۰+', rating: '۴.۹' }
+      title: "آموزش‌های تخصصی مد اینفو",
+      subtitle: "یادگیری با بهترین اساتید",
+      description:
+        "در مد اینفو، آموزش‌ها با استانداردهای جهانی و با تمرکز بر نیازهای واقعی بازار ارائه می‌شوند.",
+      image: "/images/slider1.jpg",
+      gradient: "from-purple-600/80 to-blue-600/80",
+      stats: { students: "15K+", courses: "120+", rating: "4.9" },
     },
     {
       id: 2,
-      title: 'اساتید برتر',
-      subtitle: 'از بهترین متخصصان',
-      description: 'یادگیری از اساتید با تجربه و متخصص در زمینه‌های مختلف تکنولوژی و کسب‌وکار',
-      image: './images/pexels-photo-1043471.jpeg',
-      gradient: 'from-pink-600/80 to-purple-600/80',
-      stats: { students: '۱۲,۰۰۰+', courses: '۶۵۰+', rating: '۴.۸' }
+      title: "دوره‌های کاربردی و پروژه‌محور",
+      subtitle: "یادگیری با انجام پروژه",
+      description:
+        "تمام دوره‌های مد اینفو بر اساس پروژه‌های واقعی طراحی شده‌اند تا شما را برای ورود به بازار کار آماده کنند.",
+      image: "/images/slider2.jpg",
+      gradient: "from-blue-600/80 to-purple-600/80",
+      stats: { students: "12K+", courses: "90+", rating: "4.8" },
     },
-    {
-      id: 3,
-      title: 'دسترسی همه‌جا',
-      subtitle: 'یادگیری بدون محدودیت',
-      description: 'در هر زمان و مکان، با هر دستگاهی به محتوای آموزشی با کیفیت دسترسی داشته باشید',
-      image: './images/pexels-photo-3184292.jpeg',
-      gradient: 'from-blue-600/80 to-cyan-600/80',
-      stats: { students: '۱۸,۰۰۰+', courses: '۹۵۰+', rating: '۴.۷' }
-    },
-    {
-      id: 4,
-      title: 'پروژه‌های عملی',
-      subtitle: 'یادگیری کاربردی',
-      description: 'با انجام پروژه‌های واقعی، مهارت‌های خود را در دنیای واقعی به کار بگیرید',
-      image: './images/pexels-photo-1181244.jpeg',
-      gradient: 'from-green-600/80 to-blue-600/80',
-      stats: { students: '۲۰,۰۰۰+', courses: '۱,۲۰۰+', rating: '۴.۹' }
-    }
   ];
 
-  const [isPaused, setIsPaused] = useState(false);
+  // -----------------------------
+  // Load Home API + Instructors API
+  // -----------------------------
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true);
 
+        const homeRes = await fetch(`${BASE_URL}home/`);
+        if (!homeRes.ok) {
+          setError("خطا در دریافت اطلاعات صفحه اصلی");
+          return;
+        }
+
+        const homeData: HomeApiResponse = await homeRes.json();
+
+        const featured =
+          homeData.top_rated.length > 0
+            ? homeData.top_rated
+            : homeData.newest;
+
+        setFeaturedCourses(featured);
+
+        const instRes = await fetch(`${BASE_URL}instructors/?limit=4`);
+        if (!instRes.ok) {
+          setError("خطا در دریافت اطلاعات مدرسان");
+          return;
+        }
+
+        const instData: Instructor[] = await instRes.json();
+        setInstructors(instData);
+      } catch (err) {
+        setError("خطای ناشناخته");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void loadData(); // جلوگیری از هشدار TS
+  }, []);
+
+  // -----------------------------
+  // Slider Auto-play
+  // -----------------------------
   useEffect(() => {
     if (isPaused) return;
-    
+
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderData.length);
     }, 4000);
+
     return () => clearInterval(interval);
-  }, [sliderData.length, isPaused]);
+  }, [isPaused, sliderData.length]);
 
-  const nextSlide = () => {
+  const prevSlide = () =>
+    setCurrentSlide((prev) =>
+      prev === 0 ? sliderData.length - 1 : prev - 1
+    );
+
+  const nextSlide = () =>
     setCurrentSlide((prev) => (prev + 1) % sliderData.length);
-  };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + sliderData.length) % sliderData.length);
-  };
+  const goToSlide = (index: number) => setCurrentSlide(index);
 
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index);
-  };
-
-  const featuredCourses = [
-    {
-      id: '1',
-      title: 'برنامه‌نویسی React و JavaScript',
-      instructor: 'احمد رضایی',
-      rating: 4.9,
-      students: 1250,
-      price: 199000,
-      image: './images/pexels-photo-11035380.jpeg'
-    },
-    {
-      id: '2',
-      title: 'طراحی UI/UX حرفه‌ای',
-      instructor: 'مریم احمدی',
-      rating: 4.8,
-      students: 890,
-      price: 299000,
-      image: './images/pexels-photo-196644.jpeg'
-    },
-    {
-      id: '3',
-      title: 'دیجیتال مارکتینگ پیشرفته',
-      instructor: 'محمد حسنی',
-      rating: 4.7,
-      students: 2100,
-      price: 149000,
-      image: './images/pexels-photo-265087.jpeg'
-    }
-  ];
-
-  const stats = [
-    { icon: Users, value: '۱۰,۰۰۰+', label: 'دانشجو فعال' },
-    { icon: BookOpen, value: '۵۰۰+', label: 'دوره آموزشی' },
-    { icon: Award, value: '۱۰۰+', label: 'مدرس خبره' },
-    { icon: Star, value: '۴.۸', label: 'امتیاز رضایت' }
-  ];
-
+  // -----------------------------
+  // Render
+  // -----------------------------
   return (
-    <div className="rtl">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                  آینده‌ت رو با{' '}
-                  <span className="text-gradient">یادگیری آنلاین</span>{' '}
-                  بساز
-                </h1>
-                <p className="text-xl text-gray-400 leading-relaxed">
-                  بیش از ۵۰۰ دوره تخصصی در زمینه‌های مختلف تکنولوژی، کسب‌وکار و هنر.
-                  از بهترین اساتید کشور یاد بگیر و مهارت‌هایت رو به سطح بعدی برسون.
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  to="/courses"
-                  className="glow-button px-8 py-4 rounded-lg font-semibold text-center flex items-center justify-center space-x-2 space-x-reverse"
-                >
-                  <span>شروع یادگیری</span>
-                  <ArrowLeft className="h-5 w-5" />
-                </Link>
-                <button className="glass px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-all duration-300 flex items-center justify-center space-x-2 space-x-reverse">
-                  <Play className="h-5 w-5" />
-                  <span>مشاهده ویدیو</span>
-                </button>
-              </div>
+    <div className="text-white">
 
-              {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
-                {stats.map((stat, index) => (
-                  <div key={index} className="text-center">
-                    <stat.icon className="h-8 w-8 text-purple-400 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-white">{stat.value}</div>
-                    <div className="text-sm text-gray-400">{stat.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* -------------------------
+          Hero Section
+      -------------------------- */}
+      <section className="relative w-full h-[600px] flex items-center justify-center overflow-hidden">
+        <img
+          src="/images/hero-bg.jpg"
+          alt="مد اینفو"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
 
-            <div className="relative">
-              <div className="glass rounded-2xl p-8 animate-float">
-                <img
-                  src="./images/pexels-photo-5212345.jpeg"
-                  alt="آموزش آنلاین"
-                  className="w-full h-64 object-cover rounded-lg"
-                />
-                <div className="absolute -bottom-4 -right-4 glass-light rounded-lg p-4">
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                    <span className="text-sm">۱,۲۳۴ نفر آنلاین</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40"></div>
+
+        <div className="relative z-10 text-center px-6 max-w-3xl">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+            آموزش‌های تخصصی <span className="text-purple-400">مد اینفو</span>
+          </h1>
+
+          <p className="text-lg md:text-2xl text-gray-300 mb-8">
+            یادگیری با بهترین اساتید و دوره‌های پروژه‌محور،
+            مخصوص کسانی که می‌خواهند حرفه‌ای وارد بازار کار شوند.
+          </p>
+
+          <div className="flex justify-center space-x-4 space-x-reverse">
+            <Link
+              to="/courses"
+              className="glow-button px-8 py-4 rounded-lg text-lg font-medium"
+            >
+              مشاهده دوره‌ها
+            </Link>
+
+            <Link
+              to="/about"
+              className="glass px-8 py-4 rounded-lg text-lg font-medium hover:bg-white/10 transition"
+            >
+              درباره مد اینفو
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Slider Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">ویژگی‌های منحصر به فرد</h2>
-          <p className="text-xl text-gray-400">آنچه ما را از دیگران متمایز می‌کند</p>
-        </div>
-        
-        <div 
-          className="relative h-80 md:h-96 lg:h-[500px] rounded-2xl overflow-hidden"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
-          {/* Slides */}
-          <div className="relative h-full">
-            {sliderData.map((slide, index) => (
-              <div
-                key={slide.id}
-                className={`absolute inset-0 slide-transition ${
-                  index === currentSlide ? 'slide-enter-active' : 'slide-enter'
-                }`}
-              >
-                <div className="absolute inset-0">
-                  <img
-                    src={slide.image}
-                    alt={slide.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className={`absolute inset-0 bg-gradient-to-r ${slide.gradient}`}></div>
-                </div>
-                
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center text-white max-w-4xl mx-auto px-4 md:px-8">
-                    {/* Mobile Layout */}
-                    <div className="md:hidden">
-                      <h3 className="text-2xl font-bold mb-3 animate-fade-in">
-                        {slide.title}
-                      </h3>
-                      <p className="text-base mb-4 text-purple-200">
-                        {slide.subtitle}
-                      </p>
-                      <p className="text-sm mb-6 leading-relaxed px-2">
-                        {slide.description}
-                      </p>
-                      
-                      <div className="grid grid-cols-3 gap-2 mt-8">
-                        <div className="glass-light rounded-lg p-2">
-                          <div className="text-lg font-bold text-purple-300">
-                            {slide.stats.students}
-                          </div>
-                          <div className="text-xs text-purple-200">دانشجو</div>
-                        </div>
-                        <div className="glass-light rounded-lg p-2">
-                          <div className="text-lg font-bold text-purple-300">
-                            {slide.stats.courses}
-                          </div>
-                          <div className="text-xs text-purple-200">دوره</div>
-                        </div>
-                        <div className="glass-light rounded-lg p-2">
-                          <div className="text-lg font-bold text-purple-300">
-                            {slide.stats.rating}
-                          </div>
-                          <div className="text-xs text-purple-200">امتیاز</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Desktop Layout */}
-                    <div className="hidden md:block">
-                      <h3 className="text-4xl lg:text-6xl font-bold mb-4 animate-fade-in">
-                        {slide.title}
-                      </h3>
-                      <p className="text-xl lg:text-2xl mb-6 text-purple-200">
-                        {slide.subtitle}
-                      </p>
-                      <p className="text-lg lg:text-xl mb-8 leading-relaxed">
-                        {slide.description}
-                      </p>
-                      
-                      <div className="grid grid-cols-3 gap-6 lg:gap-8 mt-12">
-                        <div className="glass-light rounded-lg p-4">
-                          <div className="text-3xl lg:text-4xl font-bold text-purple-300">
-                            {slide.stats.students}
-                          </div>
-                          <div className="text-sm text-purple-200">دانشجو فعال</div>
-                        </div>
-                        <div className="glass-light rounded-lg p-4">
-                          <div className="text-3xl lg:text-4xl font-bold text-purple-300">
-                            {slide.stats.courses}
-                          </div>
-                          <div className="text-sm text-purple-200">دوره آموزشی</div>
-                        </div>
-                        <div className="glass-light rounded-lg p-4">
-                          <div className="text-3xl lg:text-4xl font-bold text-purple-300">
-                            {slide.stats.rating}
-                          </div>
-                          <div className="text-sm text-purple-200">امتیاز رضایت</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          {/* Navigation Buttons */}
-          <button
-            onClick={prevSlide}
-            className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 z-10 p-2 md:p-3 rounded-full glass hover:bg-white/20 transition-all duration-300"
-            aria-label="Previous slide"
+      {/* -------------------------
+          Slider Section
+      -------------------------- */}
+      <section className="relative w-full h-[500px] overflow-hidden mt-16">
+        {sliderData.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              index === currentSlide ? "opacity-100" : "opacity-0"
+            }`}
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
           >
-            <ChevronLeft className="h-5 w-5 md:h-6 md:w-6 text-white" />
-          </button>
-          
-          <button
-            onClick={nextSlide}
-            className="absolute right-2 md:right-4 top-1/2 transform -translate-y-1/2 z-10 p-2 md:p-3 rounded-full glass hover:bg-white/20 transition-all duration-300"
-            aria-label="Next slide"
-          >
-            <ChevronRight className="h-5 w-5 md:h-6 md:w-6 text-white" />
-          </button>
-          
-          {/* Slide Indicators */}
-          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-3 space-x-reverse">
-            {sliderData.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentSlide 
-                    ? 'bg-white scale-125 shadow-lg' 
-                    : 'bg-white/50 hover:bg-white/75'
-                }`}
-              />
-            ))}
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-white/20 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-white rounded-full transition-all duration-300 ease-linear"
-              style={{ 
-                width: `${((currentSlide + 1) / sliderData.length) * 100}%`,
-                animation: 'progress 4s linear infinite'
-              }}
+            <img
+              src={slide.image}
+              alt={slide.title}
+              className="w-full h-full object-cover"
+            />
+
+            <div
+              className={`absolute inset-0 bg-gradient-to-r ${slide.gradient}`}
             ></div>
-          </div>
-        </div>
-      </section>
 
-      {/* Featured Courses */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">دوره‌های محبوب</h2>
-          <p className="text-xl text-gray-400">از پرطرفدارترین دوره‌های آموزشی ما دیدن کنید</p>
-        </div>
+            <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-16 lg:px-32">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                {slide.title}
+              </h2>
+              <h3 className="text-2xl md:text-3xl text-purple-200 mb-4">
+                {slide.subtitle}
+              </h3>
+              <p className="text-lg md:text-xl text-gray-200 max-w-2xl">
+                {slide.description}
+              </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredCourses.map((course) => (
-            <div key={course.id} className="glass rounded-xl overflow-hidden card-hover">
-              <img
-                src={course.image}
-                alt={course.title}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2 line-clamp-2">{course.title}</h3>
-                <p className="text-gray-400 mb-4">مدرس: {course.instructor}</p>
-                
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-1 space-x-reverse">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm">{course.rating}</span>
-                  </div>
-                  <div className="flex items-center space-x-1 space-x-reverse text-gray-400">
-                    <Users className="h-4 w-4" />
-                    <span className="text-sm">{course.students.toLocaleString('fa')} نفر</span>
-                  </div>
+              <div className="flex space-x-6 space-x-reverse mt-6 text-gray-200">
+                <div className="flex items-center space-x-1 space-x-reverse">
+                  <Users className="h-5 w-5" />
+                  <span>{slide.stats.students}</span>
                 </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-purple-400">
-                    {course.price.toLocaleString('fa')} تومان
-                  </span>
-                  <Link
-                    to={`/course/${course.id}`}
-                    className="glow-button px-4 py-2 rounded-lg text-sm font-medium"
-                  >
-                    مشاهده دوره
-                  </Link>
+                <div className="flex items-center space-x-1 space-x-reverse">
+                  <BookOpen className="h-5 w-5" />
+                  <span>{slide.stats.courses}</span>
+                </div>
+                <div className="flex items-center space-x-1 space-x-reverse">
+                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  <span>{slide.stats.rating}</span>
                 </div>
               </div>
             </div>
+          </div>
+        ))}
+
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-3 rounded-full transition"
+        >
+          <ChevronLeft className="h-6 w-6 text-white" />
+        </button>
+
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-3 rounded-full transition"
+        >
+          <ChevronRight className="h-6 w-6 text-white" />
+        </button>
+
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3">
+          {sliderData.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-3 h-3 rounded-full transition ${
+                index === currentSlide ? "bg-purple-400" : "bg-white/40"
+              }`}
+            ></button>
           ))}
         </div>
+      </section>
+
+      {/* -------------------------
+          Featured Courses (Dynamic)
+      -------------------------- */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            دوره‌های محبوب مد اینفو
+          </h2>
+          <p className="text-xl text-gray-400">
+            از پرطرفدارترین دوره‌های آموزشی ما دیدن کنید
+          </p>
+        </div>
+
+        {loading && (
+          <div className="text-center text-gray-400">در حال بارگذاری...</div>
+        )}
+
+        {error && (
+          <div className="text-center text-red-400">{error}</div>
+        )}
+
+        {!loading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredCourses.map((course) => (
+              <div
+                key={course.id}
+                className="glass rounded-xl overflow-hidden card-hover"
+              >
+                <img
+                  src={course.preview_image || "/images/default-course.jpg"}
+                  alt={course.title}
+                  className="w-full h-48 object-cover"
+                />
+
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold mb-2 line-clamp-2">
+                    {course.title}
+                  </h3>
+                  <p className="text-gray-400 mb-4">
+                    مدرس: {course.teacher_name}
+                  </p>
+
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-1 space-x-reverse">
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm">
+                        {course.average_rating}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center space-x-1 space-x-reverse text-gray-400">
+                      <Users className="h-4 w-4" />
+                      <span className="text-sm">
+                        {course.comments_count.toLocaleString("fa")} نظر
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold text-purple-400">
+                      {(course.sale_price || course.price).toLocaleString(
+                        "fa"
+                      )}{" "}
+                      تومان
+                    </span>
+
+                    <Link
+                      to={`/course/${course.slug}`}
+                      className="glow-button px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                      مشاهده دوره
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="text-center mt-12">
           <Link
@@ -375,154 +377,146 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Instructors Section */}
+      {/* -------------------------
+          Instructors Section (Dynamic)
+      -------------------------- */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">مدرسان برتر</h2>
-          <p className="text-xl text-gray-400">از بهترین متخصصان صنعت یاد بگیرید</p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            مدرسان برتر مد اینفو
+          </h2>
+          <p className="text-xl text-gray-400">
+            از بهترین متخصصان صنعت یاد بگیرید
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {[
-            {
-              id: '1',
-              name: 'احمد رضایی',
-              title: 'متخصص React و JavaScript',
-              experience: '۸ سال تجربه',
-              students: 3500,
-              courses: 12,
-              rating: 4.9,
-              image: './images/pexels-photo-1043471.jpeg',
-              bio: 'توسعه‌دهنده Frontend ارشد با تجربه کار در شرکت‌های بزرگ تکنولوژی'
-            },
-            {
-              id: '2',
-              name: 'مریم احمدی',
-              title: 'طراح UI/UX',
-              experience: '۶ سال تجربه',
-              students: 2800,
-              courses: 8,
-              rating: 4.8,
-              image: './images/pexels-photo-1239291.jpeg',
-              bio: 'طراح خلاق با تجربه طراحی برای استارتاپ‌ها و شرکت‌های بزرگ'
-            },
-            {
-              id: '3',
-              name: 'محمد حسنی',
-              title: 'متخصص دیجیتال مارکتینگ',
-              experience: '۱۰ سال تجربه',
-              students: 4200,
-              courses: 15,
-              rating: 4.7,
-              image: './images/pexels-photo-1222271.jpeg',
-              bio: 'مشاور بازاریابی دیجیتال با سابقه همکاری با برندهای معتبر'
-            },
-            {
-              id: '4',
-              name: 'سارا میرزایی',
-              title: 'متخصص علم داده',
-              experience: '۷ سال تجربه',
-              students: 1900,
-              courses: 6,
-              rating: 4.6,
-              image: './images/pexels-photo-1181519.jpeg',
-              bio: 'دانشمند داده با تخصص در یادگیری ماشین و هوش مصنوعی'
-            }
-          ].map((instructor) => (
-            <div key={instructor.id} className="glass rounded-xl overflow-hidden card-hover">
-              <div className="relative">
-                <img
-                  src={instructor.image}
-                  alt={instructor.name}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="absolute top-4 right-4 bg-purple-500 px-2 py-1 rounded-full text-xs font-medium">
-                  {instructor.experience}
-                </div>
-              </div>
-              
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">{instructor.name}</h3>
-                <p className="text-purple-400 mb-3">{instructor.title}</p>
-                <p className="text-gray-400 text-sm mb-4 line-clamp-2">{instructor.bio}</p>
-                
-                <div className="flex items-center justify-between mb-4 text-sm">
-                  <div className="flex items-center space-x-1 space-x-reverse">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span>{instructor.rating}</span>
-                  </div>
-                  <div className="flex items-center space-x-1 space-x-reverse text-gray-400">
-                    <Users className="h-4 w-4" />
-                    <span>{instructor.students.toLocaleString('fa')} نفر</span>
-                  </div>
-                  <div className="flex items-center space-x-1 space-x-reverse text-gray-400">
-                    <BookOpen className="h-4 w-4" />
-                    <span>{instructor.courses} دوره</span>
+        {loading && (
+          <div className="text-center text-gray-400">در حال بارگذاری...</div>
+        )}
+
+        {!loading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {instructors.map((inst) => (
+              <div
+                key={inst.id}
+                className="glass rounded-xl overflow-hidden card-hover"
+              >
+                <div className="relative">
+                  <img
+                    src={inst.profile.image || "/images/default-user.jpg"}
+                    alt={inst.name}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute top-4 right-4 bg-purple-500 px-2 py-1 rounded-full text-xs font-medium">
+                    {inst.instructor_profile.experience || 0} سال تجربه
                   </div>
                 </div>
 
-                <Link
-                  to={`/instructor/${instructor.id}`}
-                  className="w-full glow-button py-2 rounded-lg text-sm font-medium text-center block"
-                >
-                  مشاهده پروفایل
-                </Link>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold mb-2">{inst.name}</h3>
+                  <p className="text-purple-400 mb-3">
+                    {inst.profile.specialty || "مدرس دوره‌های تخصصی"}
+                  </p>
+                  <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+                    {inst.profile.bio || "مدرس حرفه‌ای در مد اینفو"}
+                  </p>
+
+                  <div className="flex items-center justify-between mb-4 text-sm">
+                    <div className="flex items-center space-x-1 space-x-reverse">
+                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      <span>{inst.rating}</span>
+                    </div>
+
+                    <div className="flex items-center space-x-1 space-x-reverse text-gray-400">
+                      <Users className="h-4 w-4" />
+                      <span>{inst.students.toLocaleString("fa")} نفر</span>
+                    </div>
+
+                    <div className="flex items-center space-x-1 space-x-reverse text-gray-400">
+                      <BookOpen className="h-4 w-4" />
+                      <span>{inst.courses} دوره</span>
+                    </div>
+                  </div>
+
+                  <Link
+                    to={`/instructor/${inst.id}`}
+                    className="w-full glow-button py-2 rounded-lg text-sm font-medium text-center block"
+                  >
+                    مشاهده پروفایل
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
-      {/* Features Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">چرا یادینو؟</h2>
-          <p className="text-xl text-gray-400">ویژگی‌هایی که ما رو متفاوت می‌کنه</p>
+      {/* -------------------------
+    Features Section (Static)
+-------------------------- */}
+    <section className="bg-black/20 py-20 mt-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            چرا <span className="text-purple-400">مد اینفو</span>؟
+          </h2>
+          <p className="text-gray-400 text-lg">
+            ما بهترین تجربهٔ یادگیری را برای شما فراهم کرده‌ایم
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[
-            {
-              icon: '🎯',
-              title: 'آموزش هدفمند',
-              description: 'دوره‌های طراحی شده برای نیازهای واقعی بازار کار'
-            },
-            {
-              icon: '🏆',
-              title: 'اساتید برتر',
-              description: 'یادگیری از بهترین متخصصان صنعت با سال‌ها تجربه'
-            },
-            {
-              icon: '📱',
-              title: 'دسترسی همه‌جا',
-              description: 'آموزش در هر زمان و مکان با کیفیت بالا'
-            },
-            {
-              icon: '🎓',
-              title: 'گواهی معتبر',
-              description: 'دریافت مدرک معتبر پس از اتمام موفقیت‌آمیز دوره'
-            },
-            {
-              icon: '💬',
-              title: 'پشتیبانی ۲۴/۷',
-              description: 'پاسخگویی سریع به سوالات در تمام ساعات شبانه‌روز'
-            },
-            {
-              icon: '🔄',
-              title: 'به‌روزرسانی مداوم',
-              description: 'محتوای دوره‌ها همیشه با آخرین تکنولوژی‌ها همراه'
-            }
-          ].map((feature, index) => (
-            <div key={index} className="glass rounded-xl p-6 text-center card-hover">
-              <div className="text-4xl mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-              <p className="text-gray-400 leading-relaxed">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+
+                    {/* Feature 1 */}
+              <div className="glass p-8 rounded-2xl text-center hover:scale-105 transition-all duration-300">
+                <div className="w-16 h-16 mx-auto mb-6 bg-purple-500/20 rounded-full flex items-center justify-center">
+                  <Users className="h-8 w-8 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">اساتید حرفه‌ای</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  یادگیری از بهترین متخصصان صنعت با تجربهٔ واقعی در پروژه‌های بزرگ.
+                </p>
+              </div>
+
+                    {/* Feature 2 */}
+              <div className="glass p-8 rounded-2xl text-center hover:scale-105 transition-all duration-300">
+                <div className="w-16 h-16 mx-auto mb-6 bg-blue-500/20 rounded-full flex items-center justify-center">
+                   <BookOpen className="h-8 w-8 text-blue-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">دوره‌های پروژه‌محور</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  تمام دوره‌ها بر اساس پروژه‌های واقعی طراحی شده‌اند تا آمادهٔ بازار کار شوید.
+                </p>
+              </div>
+
+                    {/* Feature 3 */}
+              <div className="glass p-8 rounded-2xl text-center hover:scale-105 transition-all duration-300">
+                <div className="w-16 h-16 mx-auto mb-6 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <Star className="h-8 w-8 text-green-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">کیفیت تضمین‌شده</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  محتوای آموزشی با استانداردهای جهانی و کیفیت بالا برای یادگیری عمیق.
+                </p>
+                </div>
+
+                    {/* Feature 4 */}
+              <div className="glass p-8 rounded-2xl text-center hover:scale-105 transition-all duration-300">
+                <div className="w-16 h-16 mx-auto mb-6 bg-yellow-500/20 rounded-full flex items-center justify-center">
+                  <ChevronRight className="h-8 w-8 text-yellow-400" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">پشتیبانی دائمی</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  تیم پشتیبانی مد اینفو همیشه همراه شماست تا هیچ‌وقت در مسیر یادگیری تنها نمانید.
+                </p>
+              </div>
+
+                  </div>
+      </div>
+    </section>
+
+
     </div>
   );
 }
-
 export default HomePage;

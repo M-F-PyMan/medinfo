@@ -14,21 +14,7 @@ function AboutPage() {
       role: 'مدیر آموزش',
       image: '/images/pexels-photo-1239291.jpeg',
       description: 'متخصص طراحی برنامه‌های درسی و روش‌های آموزشی نوین'
-    },
-    {
-      name: 'علی رضایی',
-      role: 'مدیر فنی',
-      image: '/images/pexels-photo-1222271.jpeg',
-      description: 'مهندس نرم‌افزار با تجربه در طراحی پلتفرم‌های آموزشی'
-    },
-    {
-      name: 'مریم حسینی',
-      role: 'مدیر محتوا',
-      image: '/images/pexels-photo-1181519.jpeg',
-      description: 'کارشناس تولید محتوای آموزشی و استراتژی‌های یادگیری'
-    }
-  ];
-
+    },]
   const values = [
     {
       icon: Target,
@@ -40,17 +26,7 @@ function AboutPage() {
       title: 'علاقه به یادگیری',
       description: 'ایجاد انگیزه و علاقه به یادگیری مداوم در دانشجویان'
     },
-    {
-      icon: Zap,
-      title: 'نوآوری',
-      description: 'استفاده از جدیدترین تکنولوژی‌ها و روش‌های آموزشی'
-    },
-    {
-      icon: Users,
-      title: 'جامعه یادگیری',
-      description: 'ساخت جامعه‌ای از یادگیرندگان متعهد و حرفه‌ای'
-    }
-  ];
+    ];
 
   const stats = [
     { icon: Users, value: '۱۰,۰۰۰+', label: 'دانشجو فعال' },
