@@ -46,7 +46,16 @@ class TeacherApplication(models.Model):
 
     def __str__(self):
         return f"TeacherApplication({self.user.username} - {self.status})"
+class InstructorCategory(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True)
 
+    class Meta:
+        verbose_name = "دسته‌بندی مدرس"
+        verbose_name_plural = "دسته‌بندی‌های مدرس"
+
+    def __str__(self):
+        return self.name
 
 class JobOpening(models.Model):
     title = models.CharField(max_length=200)
@@ -123,6 +132,7 @@ class InstructorProfile(models.Model):
     # 🔥 NEW: اطلاعات بانکی برای تسویه
     sheba_number = models.CharField(max_length=26, blank=True, null=True, help_text="شماره شبا بدون IR")
     card_number  = models.CharField(max_length=16, blank=True, null=True, help_text="شماره کارت (اختیاری)")
+    category = models.ForeignKey(InstructorCategory, on_delete=models.SET_NULL, null=True, blank=True,related_name="instructors")
 
     def __str__(self):
         return f"Instructor: {self.user.username}"
@@ -139,4 +149,6 @@ class Enrollment(models.Model):
 
     def __str__(self):
         return f"{self.user.username} -> {self.course}"
+
+
 

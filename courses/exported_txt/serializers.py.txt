@@ -26,6 +26,10 @@ class CourseListSerializer(serializers.ModelSerializer):
     teacher_name = serializers.CharField(source="teacher.name", read_only=True)
     lessons_count = serializers.IntegerField(source="lessons_count", read_only=True)
 
+    # 🔥 اضافه شد
+    average_rating = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Course
         fields = [
@@ -37,7 +41,19 @@ class CourseListSerializer(serializers.ModelSerializer):
             "sale_price",
             "teacher_name",
             "lessons_count",
+            "average_rating",   # 🔥 جدید
+            "comments_count",   # 🔥 جدید
         ]
+
+    def get_average_rating(self, obj):
+        ratings = obj.ratings.all()
+        if not ratings.exists():
+            return 0
+        return round(sum(r.value for r in ratings) / ratings.count(), 1)
+
+    def get_comments_count(self, obj):
+        return obj.comments.count()
+
 
 
 # ---------------------------------------------------

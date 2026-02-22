@@ -120,6 +120,11 @@ class InstructorPublicViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = self.queryset
 
+        # فیلتر دسته‌بندی
+        category = self.request.GET.get("category")
+        if category:
+            qs = qs.filter(instructor_profile__category__slug=category)
+
         # مرتب‌سازی
         ordering = self.request.GET.get("ordering")
         if ordering == "rating":
@@ -133,6 +138,11 @@ class InstructorPublicViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs[: int(limit)]
 
         return qs
+
+    def list(self, request):
+        qs = self.get_queryset()
+        return Response(InstructorPublicSerializer(qs, many=True).data)
+
 
 
 class JobOpeningViewSet(viewsets.ReadOnlyModelViewSet):

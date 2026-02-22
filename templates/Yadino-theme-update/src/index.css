@@ -7,9 +7,9 @@
 /* Iran Yekan Font Family */
 @font-face {
   font-family: 'Iran Yekan';
-  src: url('/fonts/iranyekanwebthin/iranyekanwebthin.woff') format('woff'),
-       url('/fonts/iranyekanwebthin/iranyekanwebthin.ttf') format('truetype'),
-       url('/fonts/iranyekanwebthin/iranyekanwebthin.eot') format('embedded-opentype');
+  src: url('../public/fonts/iranyekanwebthin/iranyekanwebthin.woff') format('woff'),
+       url('../public/fonts/iranyekanwebthin/iranyekanwebthin.ttf') format('truetype'),
+       url('../public/fonts/iranyekanwebthin/iranyekanwebthin.eot') format('embedded-opentype');
   font-weight: 100;
   font-style: normal;
   font-display: swap;
@@ -17,9 +17,9 @@
 
 @font-face {
   font-family: 'Iran Yekan';
-  src: url('/fonts/iranyekanweblight/iranyekanweblight.woff') format('woff'),
-       url('/fonts/iranyekanweblight/iranyekanweblight.ttf') format('truetype'),
-       url('/fonts/iranyekanweblight/iranyekanweblight.eot') format('embedded-opentype');
+  src: url('../public/fonts/iranyekanweblight/iranyekanweblight.woff') format('woff'),
+       url('../public/fonts/iranyekanweblight/iranyekanweblight.ttf') format('truetype'),
+       url('../public/fonts/iranyekanweblight/iranyekanweblight.eot') format('embedded-opentype');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -27,9 +27,9 @@
 
 @font-face {
   font-family: 'Iran Yekan';
-  src: url('/fonts/iranyekanwebregular/iranyekanwebregular.woff') format('woff'),
-       url('/fonts/iranyekanwebregular/iranyekanwebregular.ttf') format('truetype'),
-       url('/fonts/iranyekanwebregular/iranyekanwebregular.eot') format('embedded-opentype');
+  src: url('../public/fonts/iranyekanwebregular/iranyekanwebregular.woff') format('woff'),
+       url('../public/fonts/iranyekanwebregular/iranyekanwebregular.ttf') format('truetype'),
+       url('../public/fonts/iranyekanwebregular/iranyekanwebregular.eot') format('embedded-opentype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -37,9 +37,9 @@
 
 @font-face {
   font-family: 'Iran Yekan';
-  src: url('/fonts/iranyekanwebmedium/iranyekanwebmedium.woff') format('woff'),
-       url('/fonts/iranyekanwebmedium/iranyekanwebmedium.ttf') format('truetype'),
-       url('/fonts/iranyekanwebmedium/iranyekanwebmedium.eot') format('embedded-opentype');
+  src: url('../public/fonts/iranyekanwebmedium/iranyekanwebmedium.woff') format('woff'),
+       url('../public/fonts/iranyekanwebmedium/iranyekanwebmedium.ttf') format('truetype'),
+       url('../public/fonts/iranyekanwebmedium/iranyekanwebmedium.eot') format('embedded-opentype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -47,9 +47,9 @@
 
 @font-face {
   font-family: 'Iran Yekan';
-  src: url('/fonts/iranyekanwebbold/iranyekanwebbold.woff') format('woff'),
-       url('/fonts/iranyekanwebbold/iranyekanwebbold.ttf') format('truetype'),
-       url('/fonts/iranyekanwebbold/iranyekanwebbold.eot') format('embedded-opentype');
+  src: url('../public/fonts/iranyekanwebbold/iranyekanwebbold.woff') format('woff'),
+       url('../public/fonts/iranyekanwebbold/iranyekanwebbold.ttf') format('truetype'),
+       url('../public/fonts/iranyekanwebbold/iranyekanwebbold.eot') format('embedded-opentype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -57,9 +57,9 @@
 
 @font-face {
   font-family: 'Iran Yekan';
-  src: url('/fonts/iranyekanwebextrabold/iranyekanwebextrabold.woff') format('woff'),
-       url('/fonts/iranyekanwebextrabold/iranyekanwebextrabold.ttf') format('truetype'),
-       url('/fonts/iranyekanwebextrabold/iranyekanwebextrabold.eot') format('embedded-opentype');
+  src: url('../public/fonts/iranyekanwebextrabold/iranyekanwebextrabold.woff') format('woff'),
+       url('../public/fonts/iranyekanwebextrabold/iranyekanwebextrabold.ttf') format('truetype'),
+       url('../public/fonts/iranyekanwebextrabold/iranyekanwebextrabold.eot') format('embedded-opentype');
   font-weight: 800;
   font-style: normal;
   font-display: swap;
@@ -67,9 +67,9 @@
 
 @font-face {
   font-family: 'Iran Yekan';
-  src: url('/fonts/iranyekanwebblack/iranyekanwebblack.woff') format('woff'),
-       url('/fonts/iranyekanwebblack/iranyekanwebblack.ttf') format('truetype'),
-       url('/fonts/iranyekanwebblack/iranyekanwebblack.eot') format('embedded-opentype');
+  src: url('../public/fonts/iranyekanwebblack/iranyekanwebblack.woff') format('woff'),
+       url('../public/fonts/iranyekanwebblack/iranyekanwebblack.ttf') format('truetype'),
+       url('../public/fonts/iranyekanwebblack/iranyekanwebblack.eot') format('embedded-opentype');
   font-weight: 900;
   font-style: normal;
   font-display: swap;
@@ -78,8 +78,8 @@
 /* Vazir Font Family */
 @font-face {
   font-family: 'Vazir';
-  src: url('/fonts/Vazir-Light.woff2') format('woff2'),
-       url('/fonts/Vazir-Light.woff') format('woff');
+  src: url('../public/fonts/Vazir-Light.woff2') format('woff2'),
+       url('../public/fonts/Vazir-Light.woff') format('woff');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -87,8 +87,8 @@
 
 @font-face {
   font-family: 'Vazir';
-  src: url('/fonts/Vazir-Regular.woff2') format('woff2'),
-       url('/fonts/Vazir-Regular.woff') format('woff');
+  src: url('../public/fonts/Vazir-Regular.woff2') format('woff2'),
+       url('../public/fonts/Vazir-Regular.woff') format('woff');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -96,8 +96,8 @@
 
 @font-face {
   font-family: 'Vazir';
-  src: url('/fonts/Vazir-Medium.woff2') format('woff2'),
-       url('/fonts/Vazir-Medium.woff') format('woff');
+  src: url('../public/fonts/Vazir-Medium.woff2') format('woff2'),
+       url('../public/fonts/Vazir-Medium.woff') format('woff');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -107,8 +107,8 @@
 
 @font-face {
   font-family: 'Vazir';
-  src: url('/fonts/Vazir-Bold.woff2') format('woff2'),
-       url('/fonts/Vazir-Bold.woff') format('woff');
+  src: url('../public/fonts/Vazir-Bold.woff2') format('woff2'),
+       url('../public/fonts/Vazir-Bold.woff') format('woff');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -330,3 +330,14 @@ input[type="text"].verify-code-input {
   text-align: left !important;
   direction: ltr !important;
 }
+/* Upload Box */
+.upload-box {
+  @apply w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg cursor-pointer
+         border border-dashed border-white/20 bg-white/5 text-sm text-gray-200
+         hover:bg-white/10 hover:border-white/40 transition;
+}
+
+.upload-box input[type="file"] {
+  display: none;
+}
+

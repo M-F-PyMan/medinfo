@@ -46,3 +46,24 @@ class CommentReport(models.Model):
 
     def __str__(self):
         return f"Report by {self.reporter} on comment {self.comment.id}"
+
+class InstructorReview(models.Model):
+    instructor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="instructor_reviews"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="student_reviews"
+    )
+    rating = models.PositiveSmallIntegerField(default=5)
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("instructor", "user")
+
+    def __str__(self):
+        return f"{self.user} → {self.instructor} ({self.rating})"

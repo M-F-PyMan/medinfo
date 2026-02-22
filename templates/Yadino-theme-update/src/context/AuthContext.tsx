@@ -15,11 +15,13 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  role: "student" | "instructor" | null;
   isAuthenticated: boolean;
   loading: boolean;
   login: (username: string, password: string) => Promise<boolean>;
   register: (data: RegisterData) => Promise<boolean>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 interface RegisterData {
@@ -31,16 +33,28 @@ interface RegisterData {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE = "http://127.0.0.1:8000/api"; // اگر آدرس سرورت چیز دیگری است، اینجا تغییر بده
+const API_BASE = "http://127.0.0.1:8000/api";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<"student" | "instructor" | null>(null);
   const [loading, setLoading] = useState(true);
 
   const authHeaders = () => ({
     "Content-Type": "application/json",
     Authorization: `Bearer ${localStorage.getItem("access") || ""}`,
   });
+
+  // -----------------------------
+  // 🔥 تعیین نقش کاربر
+  // -----------------------------
+  const determineRole = (userData: User | null) => {
+    if (!userData) {
+      setRole(null);
+      return;
+    }
+    setRole(userData.is_teacher ? "instructor" : "student");
+  };
 
   // -----------------------------
   // 🔥 Auto Login (me)
@@ -60,6 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data);
+        determineRole(data);
       } else {
         localStorage.removeItem("access");
         localStorage.removeItem("refresh");
@@ -94,6 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("refresh", data.refresh);
 
       setUser(data.user);
+      determineRole(data.user);
+
       return true;
     } catch (err) {
       console.error("Login error:", err);
@@ -112,10 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify(data),
       });
 
-      if (!res.ok) return false;
-
-      // ثبت‌نام موفق → اما توکن نمی‌دهد → باید login کنیم
-      return true;
+      return res.ok;
     } catch (err) {
       console.error("Register error:", err);
       return false;
@@ -141,17 +155,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("access");
     localStorage.removeItem("refresh");
     setUser(null);
+    setRole(null);
+  };
+
+  // -----------------------------
+  // 🔥 Refresh User (برای بعد از تأیید مدرس شدن)
+  // -----------------------------
+  const refreshUser = async () => {
+    await fetchMe();
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        role,
         isAuthenticated: !!user,
         loading,
         login,
         register,
         logout,
+        refreshUser,
       }}
     >
       {children}

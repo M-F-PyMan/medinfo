@@ -7,11 +7,16 @@ from .models import (
     Enrollment,
     TeacherApplication,
     JobOpening,
+    InstructorCategory,
 )
-
 from django.db.models import Avg, Count
+from reviews.models import InstructorReview
+from reviews.serializers import InstructorReviewSerializer
 
-
+class InstructorCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InstructorCategory
+        fields = ["id", "name", "slug"]
 
 
 
@@ -40,6 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class InstructorProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)  # بهتر از StringRelatedField برای ادمین
+    category = InstructorCategorySerializer(read_only=True)
 
     class Meta:
         model = InstructorProfile
@@ -207,13 +213,19 @@ class MeSerializer(serializers.ModelSerializer):
             for c in courses
         ]
 
+
+
 class InstructorPublicSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
     instructor_profile = InstructorProfileSerializer(read_only=True)
+    category = serializers.SerializerMethodField()
 
     students = serializers.SerializerMethodField()
     courses = serializers.SerializerMethodField()
+
     rating = serializers.SerializerMethodField()
+    reviews_count = serializers.SerializerMethodField()
+    instructor_reviews = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -222,21 +234,42 @@ class InstructorPublicSerializer(serializers.ModelSerializer):
             "name",
             "username",
             "profile",
+            "category",
             "instructor_profile",
             "students",
             "courses",
             "rating",
+            "reviews_count",
+            "instructor_reviews",
         ]
 
+    def get_category(self, obj):
+        if obj.instructor_profile and obj.instructor_profile.category:
+            return InstructorCategorySerializer(obj.instructor_profile.category).data
+        return None
+
+    # تعداد دانشجو
     def get_students(self, obj):
         return Enrollment.objects.filter(course__teacher=obj).values("user").distinct().count()
 
+    # تعداد دوره
     def get_courses(self, obj):
         return obj.teacher_courses.count()
 
+    # میانگین امتیاز مدرس
     def get_rating(self, obj):
-        avg = obj.teacher_courses.aggregate(a=Avg("ratings__value"))["a"]
+        avg = InstructorReview.objects.filter(instructor=obj).aggregate(a=Avg("rating"))["a"]
         return round(avg or 0, 1)
+
+    # تعداد نظرات
+    def get_reviews_count(self, obj):
+        return InstructorReview.objects.filter(instructor=obj).count()
+
+    # لیست نظرات
+    def get_instructor_reviews(self, obj):
+        reviews = InstructorReview.objects.filter(instructor=obj).order_by("-created_at")
+        return InstructorReviewSerializer(reviews, many=True).data
+
 
 
 class JobOpeningSerializer(serializers.ModelSerializer):

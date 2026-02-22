@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, MessageCircle, Heart, Share2, Calendar, Award, TrendingUp, Plus, Search, Filter } from 'lucide-react';
+import { Users, MessageCircle, Heart,  Calendar, Award, TrendingUp, Plus, Search, Filter } from 'lucide-react';
 
 function CommunityPage() {
   const [activeTab, setActiveTab] = useState('discussions');

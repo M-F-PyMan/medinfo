@@ -48,6 +48,22 @@ class TeacherApplication(models.Model):
         return f"TeacherApplication({self.user.username} - {self.status})"
 
 
+class JobOpening(models.Model):
+    title = models.CharField(max_length=200)
+    field = models.CharField(max_length=200)  # رشته تدریس
+    type = models.CharField(max_length=100, default="مدرس")
+    location = models.CharField(max_length=200, default="دورکاری")
+    description = models.TextField()
+
+    requirements = models.JSONField(default=list)
+    benefits = models.JSONField(default=list)
+
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.title
+
+
 class UserManager(BaseUserManager):
     def create_user(self, username, email=None, password=None, **extra_fields):
         if not username:

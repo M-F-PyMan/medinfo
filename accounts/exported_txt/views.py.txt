@@ -12,8 +12,9 @@ from .serializers import (
     UserSerializer,
     InstructorPublicSerializer,
     TeacherApplicationSerializer,
+    JobOpeningSerializer,
 )
-from .models import User, Enrollment, TeacherApplication, InstructorProfile
+from .models import User, Enrollment, TeacherApplication, InstructorProfile,JobOpening
 from courses.serializers import CourseListSerializer
 from notifications.utils import create_notification
 from django.utils import timezone
@@ -132,3 +133,9 @@ class InstructorPublicViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs[: int(limit)]
 
         return qs
+
+
+class JobOpeningViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = JobOpening.objects.all().order_by("-created_at")
+    serializer_class = JobOpeningSerializer
+    permission_classes = [AllowAny]

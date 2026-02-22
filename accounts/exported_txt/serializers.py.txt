@@ -6,6 +6,7 @@ from .models import (
     InstructorProfile,
     Enrollment,
     TeacherApplication,
+    JobOpening,
 )
 
 from django.db.models import Avg, Count
@@ -236,3 +237,14 @@ class InstructorPublicSerializer(serializers.ModelSerializer):
     def get_rating(self, obj):
         avg = obj.teacher_courses.aggregate(a=Avg("ratings__value"))["a"]
         return round(avg or 0, 1)
+
+
+class JobOpeningSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobOpening
+        fields = "__all__"
+
+class JobOpeningAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobOpening
+        fields = "__all__"

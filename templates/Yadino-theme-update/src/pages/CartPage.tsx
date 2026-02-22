@@ -9,8 +9,8 @@ import {
   CreditCard,
   Award,
   Headphones,
-  Smartphone,
-  Shield,
+
+
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 
@@ -238,10 +238,6 @@ function CartPage() {
               <div className="flex items-center space-x-3 space-x-reverse text-xs sm:text-sm">
                 <Headphones className="h-3 w-3 sm:h-4 sm:w-4 text-purple-400" />
                 <span className="text-gray-300">پشتیبانی ۲۴/۷</span>
-              </div>
-              <div className="flex items-center space-x-3 space-x-reverse text-xs sm:text-sm">
-                <Smartphone className="h-3 w-3 sm:h-4 sm:w-4 text-purple-400" />
-                <span className="text-gray-300">قابل مشاهده در موبایل</span>
               </div>
             </div>
           </div>
